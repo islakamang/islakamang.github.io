@@ -265,7 +265,7 @@ const PROTO = !!CFG.prototype;
 /* ======================= small helpers ======================= */
 const UI = {
   start:["START THE JOURNEY","SIMULAN ANG PAGLALAKBAY"], tag:["Build the teen center of your dreams","Buuin ang teen center ng mga pangarap mo"],
-  meta:["About 20–25 minutes · Anonymous · For teens 10–19 in Ilagan City","Mga 20–25 minuto · Anonymous · Para sa mga teen na 10–19 sa Lungsod ng Ilagan"],
+  meta:["About 20–25 minutes · Anonymous · For teens 10–19 in Ilagan City · 🔊 Turn up your volume","Mga 20–25 minuto · Anonymous · Para sa mga teen na 10–19 sa Lungsod ng Ilagan · 🔊 Lakasan ang volume"], musicHint:["🎵 Tap the 🔊 button at the top to turn on the music","🎵 Pindutin ang 🔊 sa itaas para buksan ang musika"],
   hello:["Hi! I'm Nexy, your guide. Ready to plan a teen center?","Kumusta! Ako si Nexy, ang gabay mo. Handa ka na bang magplano ng teen center?"],
   letsgo:["Let's go!","Tara na!"], next:["Next","Susunod"], skip:["Skip","Laktawan"], back:["Back","Bumalik"], done:["Done","Tapos na"],
   cont:["Continue","Magpatuloy"], boarding:["BOARDING PASS","BOARDING PASS"], boardsub1:["First, a quick question before we sail!","Una, isang mabilis na tanong bago tayo maglayag!"], boardsub2:["Last one before we sail!","Huli na bago tayo maglayag!"],
@@ -338,9 +338,9 @@ function wipe(){ try{ sessionStorage.removeItem('kamang'); }catch(e){} }
 try{ const v=localStorage.getItem('kamang_snd'); if(v!==null && [0,1,2].includes(+v)) st.snd=+v; }catch(e){}
 let AC, busMain, busMusic, busSfx, NB;
 function ac(){ try{ if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)(); const comp=AC.createDynamicsCompressor(); comp.connect(AC.destination);
-    busMain=AC.createGain(); busMain.gain.value=.9; busMain.connect(comp); busMusic=AC.createGain(); busMusic.gain.value=0; busMusic.connect(busMain);
+    busMain=AC.createGain(); busMain.gain.value=1; busMain.connect(comp); busMusic=AC.createGain(); busMusic.gain.value=0; busMusic.connect(busMain);
     busSfx=AC.createGain(); busSfx.gain.value=1; busSfx.connect(busMain); }
-  if(AC.state==='suspended') AC.resume(); return AC; }catch(e){ return null; } }
+  if(AC.state!=='running') AC.resume(); return AC; }catch(e){ return null; } }
 function tone(f,t,d,type,v,dest,slideTo){ const o=AC.createOscillator(), g=AC.createGain(); o.type=type||'triangle'; o.frequency.setValueAtTime(f,t);
   if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,t+d);
   g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v||.1,t+.008); g.gain.exponentialRampToValueAtTime(.0001,t+d);
@@ -385,20 +385,25 @@ const M_MEL = [
   [[0,9,2],[2,12,2],[4,14,2],[6,12,2],[8,9,4],[12,7,2],[14,9,2]],
   [[0,7,4],[4,4,2],[6,2,2],[8,7,6],[14,4,2]]];
 function musicStep(i,t){ const bar=Math.floor(i/16)%8, s=i%16, sh=M.shift, sd=60/M.tempo/4;
-  if(s===0||s===8||(s===10&&bar%2)) tone(150,t,.13,'sine',.55,busMusic,48);
-  if(s===4||s===12) noise(t,.11,.14,1800,900,busMusic);
-  if(s%2===0) noise(t,.03,s%4===0?.05:.03,7000,7000,busMusic);
-  if(s===0||s===6||s===8||s===12) tone(hz(M_ROOT[bar]+(s===8?7:0)-12+sh),t,sd*3,'triangle',.28,busMusic);
-  if(s%2===0){ const ch=M_CHORD[bar]; tone(hz(ch[[0,1,2,1,0,1,2,1][s/2]]+sh),t,sd*1.7,'triangle',.08,busMusic); }
-  M_MEL[bar].forEach(([st0,n,l])=>{ if(st0===s) tone(hz(n+12+sh),t,sd*l*.95,'square',.05,busMusic); }); }
+  if(s===0||s===8||(s===10&&bar%2)){ tone(150,t,.13,'sine',.55,busMusic,48); tone(260,t,.05,'square',.07,busMusic,120); }
+  if(s===4||s===12) noise(t,.11,.22,1800,900,busMusic);
+  if(s%2===0) noise(t,.03,s%4===0?.08:.05,7000,7000,busMusic);
+  if(s===0||s===6||s===8||s===12){ const bn=M_ROOT[bar]+(s===8?7:0)+sh; tone(hz(bn-12),t,sd*3,'triangle',.28,busMusic); tone(hz(bn),t,sd*2.4,'triangle',.2,busMusic); }
+  if(s%2===0){ const ch=M_CHORD[bar]; tone(hz(ch[[0,1,2,1,0,1,2,1][s/2]]+sh),t,sd*1.7,'triangle',.14,busMusic); }
+  M_MEL[bar].forEach(([st0,n,l])=>{ if(st0===s) tone(hz(n+12+sh),t,sd*l*.95,'square',.085,busMusic); }); }
 function musicTick(){ if(!M.on||!AC) return; const sd=60/M.tempo/4; while(M.next<AC.currentTime+.3){ musicStep(M.step,M.next); M.next+=sd; M.step=(M.step+1)%128; } }
 function musicStart(){ if(M.on||!ac()) return; M.on=true; M.next=AC.currentTime+.08; M.step=0; const g=busMusic.gain, now=AC.currentTime;
-  g.cancelScheduledValues(now); g.setValueAtTime(g.value,now); g.linearRampToValueAtTime(.55,now+1.2); M.timer=setInterval(musicTick,60); }
+  g.cancelScheduledValues(now); g.setValueAtTime(g.value,now); g.linearRampToValueAtTime(1,now+1.2); M.timer=setInterval(musicTick,60); }
 function musicStop(){ if(!M.on) return; M.on=false; clearInterval(M.timer); if(AC){ const g=busMusic.gain, now=AC.currentTime; g.cancelScheduledValues(now); g.setValueAtTime(g.value,now); g.linearRampToValueAtTime(0,now+.3); } }
 function applySound(){ if(st.snd>=2) musicStart(); else musicStop(); try{ localStorage.setItem('kamang_snd',st.snd); }catch(e){} }
 function musicZone(id){ const k={A:0,'1':2,'2':4,D:5,'3':7,'4':9,F:0}; M.shift=k[id]!==undefined?k[id]:0; M.tempo=id==='F'?124:112; }
 function zoneKey(){ if(st.phase!=='steps') return 'A'; const s=STEPS[st.i]; return (s.p!==undefined && DATA.parts[s.p]) ? DATA.parts[s.p].id : 'F'; }
-window.addEventListener('pointerdown',()=>{ if(st.snd>0){ ac(); if(st.snd>=2) musicStart(); } },true);   // a tap is needed before browsers allow sound
+function unlockAudio(){ if(st.snd<=0 || !ac()) return;                       // phones allow sound only after a finished tap
+  try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}   // iPhone: play even when the silent switch is on
+  try{ const b=AC.createBuffer(1,1,22050), s=AC.createBufferSource(); s.buffer=b; s.connect(AC.destination); s.start(0); }catch(e){}
+  if(st.snd>=2) musicStart();
+  if(!unlockAudio.told){ unlockAudio.told=true; setTimeout(()=>{ if(AC && AC.state!=='running' && st.snd>=2) toast(raw(UI.musicHint)); },900); } }
+['touchend','pointerup','click','keydown'].forEach(ev=>window.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
 document.addEventListener('visibilitychange',()=>{ if(!AC) return; if(document.hidden) AC.suspend(); else if(st.snd>0) AC.resume(); });
 document.addEventListener('input',e=>{ if(e.target.matches && e.target.matches('input[type=text],textarea')){ const n=Date.now(); if(n-(sfx._t||0)>70){ sfx._t=n; sfx.type(); } } });
 document.addEventListener('change',e=>{ if(e.target.type==='checkbox') sfx.check(); });
