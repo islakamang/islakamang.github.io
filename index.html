@@ -63,7 +63,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:4px soli
 @keyframes pulse{50%{transform:scale(1.06)}}
 
 /* ---------- nexy ---------- */
-.nx{width:120px;height:auto;display:block;overflow:visible;filter:drop-shadow(0 10px 8px rgba(27,31,75,.22))}
+.nx{will-change:transform;width:120px;height:auto;display:block;overflow:visible;filter:drop-shadow(0 10px 8px rgba(27,31,75,.22))}
 .nx .bob{animation:bob 2.4s ease-in-out infinite;transform-origin:100px 230px}
 @keyframes bob{50%{transform:translateY(-7px) rotate(-1.5deg)}}
 .nx .eyes{animation:blink 4.2s infinite;transform-origin:100px 96px}
@@ -272,6 +272,7 @@ const UI = {
   otherage:["I am younger than 10 or older than 19","Mas bata ako sa 10 o mas matanda sa 19"],
   nexyGate:["First, I just need to know who is sailing with me.","Una, kailangan ko lang malaman kung sino ang kasama kong maglalayag."],
   followup:["Follow-up: tell us a bit more","Dagdag na tanong: ikuwento mo pa nang kaunti"],
+  outFix:["Tapped by mistake? Go back","Nagkamali ng pindot? Bumalik"],
   otherPh:["Write it here","Isulat dito"], noNames:["Please do not write names or personal stories.","Huwag magsulat ng pangalan o personal na kuwento."],
   wishHead:["MAKE A WISH! 🌠","HUMILING KA! 🌠"], wishNexy:["Last step! Tell me about your dream teen center.","Huling hakbang! Ikuwento mo ang pangarap mong teen center."], wishNexy2:["Almost done! Any ideas for us?","Malapit nang matapos! May ideya ka ba para sa amin?"],
   wishSub:["Optional. Write in English or Filipino.","Opsyonal. Maaaring English o Filipino."], sendWish:["Send my wish","Ipadala ang hiling ko"],
@@ -393,6 +394,7 @@ const M_MEL = [
   [[0,9,2],[2,12,2],[4,14,2],[6,12,2],[8,9,4],[12,7,2],[14,9,2]],
   [[0,7,4],[4,4,2],[6,2,2],[8,7,6],[14,4,2]]];
 function musicStep(i,t){ const bar=Math.floor(i/16)%8, s=i%16, sh=M.shift, sd=60/M.tempo/4;
+  if(s%4===0 && typeof scheduleBeat==='function') scheduleBeat(bar,s/4,t);
   if(s===0||s===8||(s===10&&bar%2)){ tone(150,t,.14,'sine',.8,busMusic,48); tone(280,t,.05,'square',.1,busMusic,120); }
   if(s===4||s===12){ noise(t,.12,.3,1800,900,busMusic); tone(200,t,.08,'triangle',.12,busMusic,120); }
   if(s%2===0) noise(t,.03,s%4===0?.1:.06,7000,7000,busMusic);
@@ -416,6 +418,37 @@ function unlockAudio(){ if(st.snd<=0 || !ac()) return;                       // 
 document.addEventListener('visibilitychange',()=>{ if(!AC) return; if(document.hidden) AC.suspend(); else if(st.snd>0) AC.resume(); });
 document.addEventListener('input',e=>{ if(e.target.matches && e.target.matches('input[type=text],textarea')){ const n=Date.now(); if(n-(sfx._t||0)>70){ sfx._t=n; sfx.type(); } } });
 document.addEventListener('change',e=>{ if(e.target.type==='checkbox') sfx.check(); });
+
+/* ======================= Nexy dances to the music (moves land on the beat) and reacts to the effects ======================= */
+const REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CHOREO = [
+  ['bounce','bounce','swayL','swayR'], ['hop','squash','hop','pose'], ['swayL','swayR','swayL','swayR'], ['shimmy','shimmy','stomp','spin'],
+  ['bounce','swayL','bounce','swayR'], ['hop','hop','squash','squash'], ['stomp','stomp','shimmy','pose'], ['swayL','swayR','hop','spin']];
+function nxParts(svg){ return { root:svg, aL:svg.querySelector('.armL'), aR:svg.querySelector('.armR'), fL:svg.querySelector('.ftL'), fR:svg.querySelector('.ftR') }; }
+function nxA(el,frames,ms,ease){ if(!el||!el.animate) return; try{ el.animate(frames,{duration:ms,easing:ease||'ease-in-out'}); }catch(e){} }
+const ORG_L='46px 150px', ORG_R='154px 150px';
+const armL = (S,ms,deg,deg2)=>nxA(S.aL,[{transform:'rotate(0deg)',transformOrigin:ORG_L},{transform:`rotate(${deg}deg)`,transformOrigin:ORG_L,offset:.45},{transform:`rotate(${deg2||0}deg)`,transformOrigin:ORG_L}],ms);
+const armR = (S,ms,deg,deg2)=>nxA(S.aR,[{transform:'rotate(0deg)',transformOrigin:ORG_R},{transform:`rotate(${-deg}deg)`,transformOrigin:ORG_R,offset:.45},{transform:`rotate(${-(deg2||0)}deg)`,transformOrigin:ORG_R}],ms);
+const feet = (S,ms,left)=>nxA(left?S.fL:S.fR,[{transform:'translateY(0)'},{transform:'translateY(-16px)',offset:.4},{transform:'translateY(0)'}],ms);
+const MOVES = {
+  bounce:(S,ms)=>{ nxA(S.root,[{transform:'translateY(0) scale(1,1)'},{transform:'translateY(-16px) scale(.96,1.06)',offset:.45},{transform:'translateY(0) scale(1.07,.92)',offset:.85},{transform:'translateY(0) scale(1,1)'}],ms); armL(S,ms,45); armR(S,ms,45); },
+  swayL:(S,ms)=>{ nxA(S.root,[{transform:'translateX(0) rotate(0)'},{transform:'translateX(-12px) rotate(-10deg)',offset:.5},{transform:'translateX(0) rotate(0)'}],ms); armL(S,ms,95); armR(S,ms,-15); feet(S,ms,true); },
+  swayR:(S,ms)=>{ nxA(S.root,[{transform:'translateX(0) rotate(0)'},{transform:'translateX(12px) rotate(10deg)',offset:.5},{transform:'translateX(0) rotate(0)'}],ms); armR(S,ms,95); armL(S,ms,-15); feet(S,ms,false); },
+  hop:(S,ms)=>{ nxA(S.root,[{transform:'translateY(0) scale(1,1)'},{transform:'translateY(4px) scale(1.08,.9)',offset:.12},{transform:'translateY(-34px) scale(.94,1.1)',offset:.5},{transform:'translateY(0) scale(1.08,.9)',offset:.88},{transform:'translateY(0) scale(1,1)'}],ms,'ease-out'); armL(S,ms,150,20); armR(S,ms,150,20); },
+  shimmy:(S,ms)=>{ nxA(S.root,[{transform:'rotate(0) translateX(0)'},{transform:'rotate(-7deg) translateX(-5px)',offset:.2},{transform:'rotate(7deg) translateX(5px)',offset:.4},{transform:'rotate(-7deg) translateX(-5px)',offset:.6},{transform:'rotate(7deg) translateX(5px)',offset:.8},{transform:'rotate(0) translateX(0)'}],ms,'linear');
+    nxA(S.aL,[{transform:'rotate(0deg)',transformOrigin:ORG_L},{transform:'rotate(40deg)',transformOrigin:ORG_L,offset:.25},{transform:'rotate(-10deg)',transformOrigin:ORG_L,offset:.5},{transform:'rotate(40deg)',transformOrigin:ORG_L,offset:.75},{transform:'rotate(0deg)',transformOrigin:ORG_L}],ms,'linear');
+    nxA(S.aR,[{transform:'rotate(0deg)',transformOrigin:ORG_R},{transform:'rotate(-40deg)',transformOrigin:ORG_R,offset:.25},{transform:'rotate(10deg)',transformOrigin:ORG_R,offset:.5},{transform:'rotate(-40deg)',transformOrigin:ORG_R,offset:.75},{transform:'rotate(0deg)',transformOrigin:ORG_R}],ms,'linear'); },
+  squash:(S,ms)=>{ nxA(S.root,[{transform:'scale(1,1)'},{transform:'translateY(6px) scale(1.18,.8)',offset:.2},{transform:'translateY(-24px) scale(.88,1.18)',offset:.55},{transform:'translateY(0) scale(1.1,.9)',offset:.88},{transform:'scale(1,1)'}],ms,'ease-out'); armL(S,ms,70); armR(S,ms,70); },
+  pose:(S,ms)=>{ nxA(S.root,[{transform:'rotate(0) translateY(0)'},{transform:'rotate(9deg) translateY(-8px)',offset:.3},{transform:'rotate(9deg) translateY(-8px)',offset:.8},{transform:'rotate(0) translateY(0)'}],ms); armL(S,ms,150,150); armR(S,ms,150,150); },
+  stomp:(S,ms)=>{ nxA(S.root,[{transform:'translateY(0)'},{transform:'translateY(-7px)',offset:.35},{transform:'translateY(2px)',offset:.7},{transform:'translateY(0)'}],ms); feet(S,ms,true); setTimeout(()=>feet(S,ms,false),ms/2); armL(S,ms,30); armR(S,ms,30); },
+  spin:(S,ms)=>{ nxA(S.root,[{transform:'rotateY(0deg) translateY(0)'},{transform:'rotateY(180deg) translateY(-20px)',offset:.5},{transform:'rotateY(360deg) translateY(0)'}],ms*1.9,'ease-in-out'); armL(S,ms*1.9,120,10); armR(S,ms*1.9,120,10); },
+  shake:(S,ms)=>{ nxA(S.root,[{transform:'rotate(0)'},{transform:'rotate(-10deg)',offset:.2},{transform:'rotate(10deg)',offset:.45},{transform:'rotate(-8deg)',offset:.7},{transform:'rotate(0)'}],ms,'linear'); },
+};
+function danceBeat(bar,b){ if(!M.on||document.hidden||REDUCED) return; const els=document.querySelectorAll('svg.nx'); if(!els.length) return;
+  const ms=60000/M.tempo, mv=MOVES[CHOREO[bar][b]]; els.forEach(svg=>mv(nxParts(svg),ms)); }
+function scheduleBeat(bar,b,t){ if(REDUCED) return; setTimeout(()=>danceBeat(bar,b),Math.max(0,(t-AC.currentTime)*1000)); }
+const REACT = { pick:['squash',240], unpick:['swayL',240], back:['swayR',260], next:['bounce',260], rate:['hop',300], place:['squash',220], stage:['hop',560], walk:['bounce',480], coin:['spin',300], uncoin:['shake',320], buzz:['shake',400], win:['hop',640], sparkle:['pose',480], lang:['swayR',260] };
+if(!REDUCED) Object.keys(REACT).forEach(k=>{ const f=sfx[k]; sfx[k]=(...a)=>{ f(...a); if(st.snd>=1){ const r=REACT[k]; document.querySelectorAll('svg.nx').forEach(svg=>MOVES[r[0]](nxParts(svg),r[1])); } }; });
 const fx = $('#fx'), fxc = fx.getContext('2d'); let parts = [];
 function sizeFx(){ fx.width=innerWidth*devicePixelRatio; fx.height=innerHeight*devicePixelRatio; fxc.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0); }
 addEventListener('resize',sizeFx); sizeFx();
@@ -431,7 +464,7 @@ function nexy(mood,cls){
     wow:'<ellipse cx="100" cy="120" rx="9" ry="11" fill="#7a2230"/>' };
   mood = mouth[mood] ? mood : 'happy';
   return `<svg class="nx ${cls||''}" viewBox="0 -14 200 270" role="img" aria-label="Nexy"><g class="bob">
-   <ellipse cx="80" cy="244" rx="24" ry="11" fill="#ff7a1a"/><ellipse cx="122" cy="244" rx="24" ry="11" fill="#ff7a1a"/>
+   <ellipse class="ftL" cx="80" cy="244" rx="24" ry="11" fill="#ff7a1a"/><ellipse class="ftR" cx="122" cy="244" rx="24" ry="11" fill="#ff7a1a"/>
    <g class="armL"><path d="M46 150 Q20 164 24 196" stroke="#ffc93c" stroke-width="18" stroke-linecap="round" fill="none"/><circle cx="24" cy="198" r="12" fill="#ffe08a"/></g>
    <path d="M100 56 C158 56 172 118 164 166 C158 212 134 240 100 240 C66 240 42 212 36 166 C28 118 42 56 100 56Z" fill="url(#nxBody)" stroke="#e09a00" stroke-width="3.5"/>
    <path d="M100 56 C158 56 172 118 164 166 C158 212 134 240 100 240 C66 240 42 212 36 166 C28 118 42 56 100 56Z" fill="url(#nxKern)" opacity=".5"/>
@@ -536,7 +569,7 @@ const PRE = {
         <div class="opts two">${G.city.opts.map((o,i)=>`<button class="opt ${st.cityAns===i?'sel':''}" data-act="city" data-v="${i}"><span class="bd">${i?'✖':'✔'}</span>${T(o)}</button>`).join('')}</div></div></div>
       <div class="navbar"><button class="btn ghost small" data-act="toGateAge">⬅ ${U('back')}</button><button class="btn green" data-act="gateGo" ${st.cityAns!==undefined?'':'disabled'}>${U('cont')} ➜</button></div></div>`); },
   out(){ theme('N'); const msg=(st.outMsg||'').replace(/^.*?“/,'').replace(/”.*$/,'');
-    setScreen(`<div class="scr"><div class="wrap" style="text-align:center;padding-top:40px">${nexy('happy','cheer')}<div class="panel"><h2>${U('out')}</h2><p class="big">${esc(msg)}</p></div></div></div>`); },
+    setScreen(`<div class="scr"><div class="wrap" style="text-align:center;padding-top:40px">${nexy('happy','cheer')}<div class="panel"><h2>${U('out')}</h2><p class="big">${esc(msg)}</p></div></div><div class="navbar"><span></span><button class="btn small ghost" data-act="outBack">⬅ ${U('outFix')}</button></div></div>`); },
   consent(){ theme('N'); const C=DATA.parentLite;
     setScreen(`<div class="scr"><div class="wrap"><div class="nexyrow">${nexy('think')}<div class="bubble">${U('parentNote')}</div></div>
       <div class="panel"><h2>${T(C.head)}</h2><p class="big">${T(C.para)}</p>
@@ -727,12 +760,13 @@ document.addEventListener('click',e=>{
   if(a==='start'){ sfx.pick(); pre('info'); }
   else if(a==='toInfo') pre('info');
   else if(a==='pmenu'){ protoMenu(); }
+  else if(a==='outBack'){ if(st.outFrom==='gate2'){ st.cityAns=undefined; pre('gate2'); } else { st.ageNum=null; pre('gate'); } }
   else if(a==='toGate'){ pre('gate2'); }
   else if(a==='toGateAge'){ pre('gate'); }
-  else if(a==='ageGo'){ if(st.ageNum==='x'){ st.outMsg=raw(DATA.gate.age.no); return pre('out'); } pre('gate2'); }
+  else if(a==='ageGo'){ if(st.ageNum==='x'){ st.outMsg=raw(DATA.gate.age.no); st.outFrom='gate'; return pre('out'); } pre('gate2'); }
   else if(a==='age'){ st.ageNum = b.dataset.v==='x'?'x':+b.dataset.v; sfx.tap(); PRE.gate(); }
   else if(a==='city'){ st.cityAns=+b.dataset.v; sfx.tap(); PRE.gate2(); }
-  else if(a==='gateGo'){ if(st.ageNum==='x'){ st.outMsg=raw(DATA.gate.age.no); return pre('out'); } if(st.cityAns===undefined) return; if(st.cityAns===1){ st.outMsg=raw(DATA.gate.city.no); return pre('out'); } st.ageBand=band(st.ageNum); pre(st.ageNum<18?'consent':'assent'); }
+  else if(a==='gateGo'){ if(st.ageNum==='x'){ st.outMsg=raw(DATA.gate.age.no); st.outFrom='gate'; return pre('out'); } if(st.cityAns===undefined) return; if(st.cityAns===1){ st.outMsg=raw(DATA.gate.city.no); st.outFrom='gate2'; return pre('out'); } st.ageBand=band(st.ageNum); pre(st.ageNum<18?'consent':'assent'); }
   else if(a==='consentGo'){ const nm=($('#cf0').value||'').trim();
     if(!$('#cchk').checked || !nm){ $('#cmsg').textContent=raw(UI.fillall); $('#cmsg').style.color='#d6246e'; sfx.buzz(); return; }
     consentInfo={kind:'parent',fields:[nm]}; sendConsent(); pre('assent'); }
