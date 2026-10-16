@@ -44,6 +44,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:4px soli
 #toplang{position:absolute;z-index:6;top:calc(max(10px,env(safe-area-inset-top)) + var(--pbar,0px));right:14px;display:flex;gap:8px}
 #hud.on ~ #toplang{position:static;display:none}
 #screen{position:relative;z-index:2;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scr.still{animation:none}
 .scr{min-height:100%;display:flex;flex-direction:column;align-items:center;animation:scrIn .5s cubic-bezier(.2,.9,.3,1.1) both}
 @keyframes scrIn{from{opacity:0;transform:translateY(26px) scale(.98)}to{opacity:1;transform:none}}
 .wrap{width:100%;max-width:860px;padding:8px 16px 28px;margin:0 auto}
@@ -495,7 +496,7 @@ function theme(key){ const t=THEMES[key]||THEMES.N; $('#bg').style.background=t[
   const f=$('#floaties'); f.innerHTML=''; for(let k=0;k<9;k++){ const s=document.createElement('span'); s.textContent=t[1][k%t[1].length]; s.style.left=(5+k*11)+'%'; s.style.animationDuration=(11+Math.random()*10)+'s'; s.style.animationDelay=(-Math.random()*14)+'s'; s.style.fontSize=(22+Math.random()*26)+'px'; f.appendChild(s); } }
 
 /* ======================= screens: before the journey ======================= */
-function setScreen(html){ screen.innerHTML=''; const d=el(html); screen.appendChild(d); screen.scrollTop=0; return d; }
+function setScreen(html, still){ const keep=screen.scrollTop; screen.innerHTML=''; const d=el(html); if(still) d.classList.add('still'); screen.appendChild(d); screen.scrollTop=still?keep:0; return d; }
 const PRE = {
   splash(){ theme('N');
     const d=setScreen(`<div class="scr"><div class="splash">${SCENE}
@@ -556,7 +557,7 @@ function qHead(c,part){ return c.head ? `<p class="sub">${T(c.head)}</p>` : ''; 
 function dotsFor(s){ const act=DATA.parts[s.p].cards.map((c,k)=>k).filter(k=>active({t:'card',p:s.p,c:k})); const n=act.length; if(n>30) return ''; const pos=act.indexOf(s.c); return `<div class="dots">${act.map((k,q)=>`<i class="${q<pos?'on':''} ${q===pos?'cur':''}"></i>`).join('')}</div>`; }
 function viewCard(s){
   const part=DATA.parts[s.p], c=part.cards[s.c], m=part.stage; theme(part.id);
-  { const key=c.id+'|'+(st.needPage||0); if(st.lastKey!==key){ st.lastKey=key; sfx.page(); } }
+  const pageKey=c.id+'|'+(st.needPage||0), samePage=(st.lastKey===pageKey); if(!samePage){ st.lastKey=pageKey; sfx.page(); }
   const ans=st.answers[c.id]; let body='';
   const prevC=part.cards[s.c-1]; const grp=c.head?part.cards.filter(x=>x.head&&x.head[0]===c.head[0]):[]; const gk=grp.indexOf(c)+1;
   const showHead=c.head&&(!prevC||!prevC.head||prevC.head[0]!==c.head[0]);
@@ -581,7 +582,7 @@ function viewCard(s){
   const fu = c.when ? `<p class="sub" style="color:var(--zone)">↪ ${U('followup')}</p>` : '';
   const hint = c.kind==='multi' && c.max ? `<p class="sub">${U('chooseUpTo')} ${c.max}</p>` : (c.kind==='open'?`<p class="sub">${U('optional')}</p>`:'');
   setScreen(`<div class="scr"><div class="wrap">${dotsFor(s)}<div class="zonehead"><span class="zonechip">${m.emoji} ${T(part.title)}</span></div>${qtag(c.id+(c.kind==='need'?(st.needPage?' · page 2':' · page 1'):'')+(c.when?' · follow-up':''))}${fu}${hint}<div class="panel" style="padding:18px 16px 22px">${body}</div></div>
-    <div class="navbar"><button class="btn ghost small" data-act="back">⬅ ${U('back')}</button><button class="btn small" style="background:var(--zone)" data-act="next" id="nextbtn">${nextLabel}</button></div></div>`);
+    <div class="navbar"><button class="btn ghost small" data-act="back">⬅ ${U('back')}</button><button class="btn small" style="background:var(--zone)" data-act="next" id="nextbtn">${nextLabel}</button></div></div>`, samePage);
   const oi=$('#oinp'); if(oi) oi.addEventListener('input',()=>{ st.answers[c.id+'.other']=oi.value; save(); });
   const ta=$('#otext'); if(ta) ta.addEventListener('input',()=>{ st.answers[c.id]=ta.value; $('#ocount').textContent=ta.value.length; save(); });
   const n=st.cardsSeen+1, cheers={4:'nice',9:'great',15:'wow'}; if(cheers[n%16] && n!==st.lastCheer){ st.lastCheer=n; setTimeout(()=>{ sfx.sparkle(); toast(raw(UI[cheers[n%16]])); },400); }
