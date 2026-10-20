@@ -338,6 +338,7 @@ const raw = a => a[st.lang];
 const qtag = id => (PROTO && st.codes) ? `<p class="qcode">${esc(id)}</p>` : '';
 const IT = i => esc(st.lang ? i.fil : i.en);
 const el = html => { const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; };
+let MAPNODE=null; const mapArt=()=>(MAPNODE||(MAPNODE=el(MAPART))).cloneNode(true);
 function save(){ try{ sessionStorage.setItem('kamang', JSON.stringify({i:st.i,phase:st.phase,pre:st.pre,lang:st.lang,ageNum:st.ageNum,ageBand:st.ageBand,avatar:st.avatar,answers:st.answers,fin:st.fin,finSkipped:st.finSkipped,started:st.started,stageSecs:st.stageSecs,cardsSeen:st.cardsSeen})); }catch(e){} }
 function load(){ try{ const j=JSON.parse(sessionStorage.getItem('kamang')||'null'); if(j && j.phase==='steps' && j.i<STEPS.length-1){ Object.assign(st,j); return true; } }catch(e){} return false; }
 function wipe(){ try{ sessionStorage.removeItem('kamang'); }catch(e){} }
@@ -462,7 +463,8 @@ function sizeFx(){ fx.width=innerWidth*devicePixelRatio; fx.height=innerHeight*d
 addEventListener('resize',sizeFx); sizeFx();
 function confetti(n,x,y){ const cols=['#ff8a3d','#ffc93c','#19c3d9','#7c5cff','#ff5c8a','#2fbf5b']; for(let k=0;k<(n||120);k++){ const a=Math.random()*Math.PI*2, s=4+Math.random()*9; parts.push({x:x??innerWidth/2,y:y??innerHeight*.35,vx:Math.cos(a)*s,vy:Math.sin(a)*s-7,r:4+Math.random()*6,c:cols[k%6],rot:Math.random()*6,vr:(Math.random()-.5)*.4,life:90+Math.random()*50}); } if(parts.length===(n||120)) loopFx(); }
 function loopFx(){ fxc.clearRect(0,0,innerWidth,innerHeight); parts=parts.filter(p=>p.life>0); parts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=.35; p.vx*=.99; p.rot+=p.vr; p.life--; fxc.save(); fxc.translate(p.x,p.y); fxc.rotate(p.rot); fxc.fillStyle=p.c; fxc.globalAlpha=Math.min(1,p.life/30); fxc.fillRect(-p.r,-p.r/2,p.r*2,p.r); fxc.restore(); }); if(parts.length) requestAnimationFrame(loopFx); }
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast.h); toast.h=setTimeout(()=>t.classList.remove('on'),1700); }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; const h=$('#hud'); const hb=(h&&h.offsetParent)?h.getBoundingClientRect().bottom:0; t.style.top=Math.max(76,Math.round(hb+8))+'px';   // never over the zone pill or progress bar
+  t.classList.add('on'); clearTimeout(toast.h); toast.h=setTimeout(()=>t.classList.remove('on'),1700); }
 
 /* ======================= art ======================= */
 function nexy(mood,cls){
@@ -604,8 +606,9 @@ function viewMap(s){
   const nodes=all.map((g,k)=>{ const cls=k<pi?'done':(k===pi?'cur':'lock'); const [x,y]=NODE_POS[k]; return `<div class="node ${cls}" style="left:${x}%;top:${y}%;--c:${g.color}"><i class="emo">${cls==='lock'?'🔒':g.emoji}</i><b>${T(g.name)}</b></div>`; }).join('');
   const route='M'+NODE_POS.map(p=>p.join(' ')).join(' L ');
   const d=setScreen(`<div class="scr"><div class="wrap"><div class="nexyrow">${nexy('happy','wave')}<div class="bubble"><b>${T(m.name)}</b> — ${T(m.nexy)}</div></div>
-    <div class="mapbox">${MAPART}<svg class="route" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${route}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.6 2.4" vector-effect="non-scaling-stroke" style="stroke-width:5px;opacity:.9"/></svg>${nodes}<div class="you emo" id="you" style="left:${NODE_POS[prev][0]}%;top:${NODE_POS[prev][1]}%">${st.avatar}</div></div></div>
+    <div class="mapbox"><i class="mapslot"></i><svg class="route" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${route}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="1.6 2.4" vector-effect="non-scaling-stroke" style="stroke-width:5px;opacity:.9"/></svg>${nodes}<div class="you emo" id="you" style="left:${NODE_POS[prev][0]}%;top:${NODE_POS[prev][1]}%">${st.avatar}</div></div></div>
     <div class="navbar"><span></span><button class="btn pulse" data-act="enterStage" style="background:var(--zone)">${T(m.name)} ➜</button></div></div>`);
+  const ms=d.querySelector('.mapslot'); if(ms) ms.replaceWith(mapArt());   // the island art is parsed once and cloned on later visits
   requestAnimationFrame(()=>setTimeout(()=>{ const y=d.querySelector('#you'); if(y){ sfx.walk(); y.style.left=NODE_POS[pi][0]+'%'; y.style.top=NODE_POS[pi][1]+'%'; } },300));
   if(!isFin) st.stageStart[pi]=Date.now();
 }
@@ -641,7 +644,7 @@ function viewCard(s){
   const chip = (pkc && pka!==undefined && pkc.opts[pka]) ? `<p class="sub" style="color:var(--ink);margin:0 0 6px">✔ ${U('youChose')} <b>${T(pkc.opts[pka])}</b></p>` : '';
   const fu = c.when ? `<p class="sub" style="color:var(--zone)">↪ ${U('followup')}</p>` : '';
   const hint = c.kind==='multi' && c.max ? `<p class="sub">${U('chooseUpTo')} ${c.max}</p>` : (c.kind==='open'?`<p class="sub">${U('optional')}</p>`:'');
-  setScreen(`<div class="scr"><div class="wrap">${dotsFor(s)}<div class="zonehead"><span class="zonechip">${m.emoji} ${T(part.title)}</span></div>${qtag(c.id+(c.kind==='need'?(st.needPage?' · page 2':' · page 1'):'')+(c.when?' · follow-up':''))}${fu}${hint}${chip}<div class="panel" style="padding:18px 16px 22px">${body}</div></div>
+  setScreen(`<div class="scr"><div class="wrap">${dotsFor(s)}<div class="zonehead"><span class="zonechip">${m.emoji} ${T(part.title)}</span></div>${qtag(c.id+(c.when?' · follow-up':''))}${fu}${hint}${chip}<div class="panel" style="padding:18px 16px 22px">${body}</div></div>
     <div class="navbar"><button class="btn ghost small" data-act="back">⬅ ${U('back')}</button><button class="btn small" style="background:var(--zone)" data-act="next" id="nextbtn">${nextLabel}</button></div></div>`, samePage);
   const oi=$('#oinp'); if(oi) oi.addEventListener('input',()=>{ st.answers[c.id+'.other']=oi.value; save(); });
   const ta=$('#otext'); if(ta) ta.addEventListener('input',()=>{ st.answers[c.id]=ta.value; $('#ocount').textContent=ta.value.length; save(); });
