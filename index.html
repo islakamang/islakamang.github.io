@@ -203,30 +203,30 @@ textarea{min-height:150px;resize:vertical}
 @keyframes pop{from{transform:scale(0) translateY(-40px);opacity:0}to{transform:none;opacity:1}}
 .emptylot{position:relative;z-index:2;text-align:center;font-weight:800;color:#1b1f4b;padding:30px 10px;border:4px dashed #1b1f4b55;border-radius:22px;background:#ffffff66;margin-top:14px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap}
-/* coin game groups (v11b): three labelled drawers; a group's items open inside its own box */
+/* coin game groups (v11c): three capsules in one lane; the chosen capsule joins the item box below it, like a folder tab */
 .purse.sticky{position:sticky;top:0;z-index:6}
 @media (max-width:600px){.purse.sticky{padding:8px 12px;gap:10px;border-radius:20px}.purse.sticky .num{font-size:34px;min-width:46px}.purse.sticky .coinrow{gap:3px;min-width:0}.purse.sticky .coinrow i{width:10px;height:10px;box-shadow:0 1px 0 #b66f00}}
-.drawhint{display:flex;gap:10px;align-items:center;background:#1b1f4b;color:#fff;border-radius:20px;padding:12px 16px;margin:14px 0 10px;font-weight:800;font-size:17px;line-height:1.25;box-shadow:0 6px 0 rgba(0,0,0,.18)}
-.drawhint .emo{font-size:28px}
-.drawhint small{display:block;font-weight:700;font-size:13px;opacity:.8;margin-top:2px}
-.drawers{display:flex;flex-direction:column;gap:14px;margin:0 0 16px}
-.drawer{scroll-margin-top:96px;border-radius:26px;border:4px solid var(--c);background:var(--t);box-shadow:0 7px 0 rgba(27,31,75,.16);overflow:hidden}
-.dhead{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px 12px;padding:14px 16px;background:var(--c);color:#fff;-webkit-tap-highlight-color:transparent}
-.dhead:focus-visible{outline:4px solid #1b1f4b;outline-offset:-4px}
-.dhead .dem{font-size:38px;line-height:1;grid-row:span 2}
-.dhead .dtitle{font-weight:800;font-size:22px;line-height:1.05}
-.dhead .dsub{grid-column:2;font-weight:700;font-size:13.5px;opacity:.95;line-height:1.2}
-.dhead .dside{grid-column:3;grid-row:1 / span 2;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.dhead .dcost{background:var(--gold);color:#6b3e00;border-radius:999px;padding:3px 12px;font-weight:800;font-size:15px;box-shadow:0 3px 0 #b66f00;white-space:nowrap}
-.dhead .dopen{background:#fff;color:var(--c);border-radius:999px;padding:5px 12px;font-weight:800;font-size:14px;white-space:nowrap}
-.dmeta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 16px;font-weight:800;font-size:14px;color:#1b1f4b;background:#ffffffaa;border-bottom:2px dashed var(--c)}
-.drawer:not(.open) .dmeta{border-bottom:0}
-.dbody{padding:4px 12px 14px}
-.dbody .shop{margin:10px 0 6px}
-.dbody .tile{border-top:7px solid var(--c)}
-.dbody .tile .tgrp{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--c)}
-.dbody .tile.sel .tgrp{color:#fff}
-.dclose{all:unset;box-sizing:border-box;cursor:pointer;display:block;margin:6px auto 0;padding:8px 16px;border-radius:999px;background:#fff;color:#1b1f4b;font-weight:800;font-size:14px;box-shadow:0 4px 0 rgba(27,31,75,.16)}
+.grpbox{scroll-margin-top:84px;background:#fff;border-radius:26px;padding:14px 12px 12px;margin:14px 0 16px;box-shadow:0 7px 0 rgba(27,31,75,.12)}
+.grphint{font-weight:800;font-size:17px;line-height:1.25;margin:0 4px 12px;color:#1b1f4b}
+.grphint small{display:block;font-weight:700;font-size:13px;opacity:.7;margin-top:2px}
+.caps{display:flex;gap:8px;align-items:stretch;position:relative;z-index:2}
+.cap{all:unset;box-sizing:border-box;cursor:pointer;position:relative;flex:1;min-width:0;text-align:center;border:3px solid var(--c);border-radius:999px;padding:8px 6px;background:#fff;color:#1b1f4b;font-weight:800;font-size:16px;line-height:1.1;box-shadow:0 4px 0 rgba(27,31,75,.14);transition:background .15s;-webkit-tap-highlight-color:transparent}
+.cap .ce{font-size:20px;margin-right:2px}
+.cap small{display:block;font-size:12px;font-weight:800;opacity:.75;margin-top:3px}
+.cap:focus-visible{outline:3px solid #1b1f4b;outline-offset:2px}
+.cap.on{background:var(--c);color:#fff;border-radius:20px 20px 0 0;border-bottom-color:transparent;box-shadow:none;padding-bottom:14px;margin-bottom:-3px}
+.cap.on small{opacity:.95}
+.cap .cnt{position:absolute;top:-9px;right:-4px;min-width:24px;height:24px;border-radius:999px;background:#1b1f4b;color:#fff;font-size:13px;display:grid;place-items:center;padding:0 6px;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.gpanel{position:relative;z-index:1;border:3px solid var(--c);background:var(--t);border-radius:22px;padding:6px 10px 12px}
+.gpanel.k0{border-top-left-radius:0}.gpanel.k2{border-top-right-radius:0}
+.gpanel .gtitle{font-weight:800;font-size:15px;color:#1b1f4b;margin:6px 4px 0;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.gpanel .shop{margin:10px 0 6px;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}
+@media (max-width:600px){.gpanel .tile{min-height:118px;font-size:14px;padding:12px 6px 10px}.gpanel .tile .em{font-size:36px}}
+.gpanel .tile{border-top:7px solid var(--c)}
+.gpanel .tile .tgrp{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--c)}
+.gpanel .tile.sel .tgrp{color:#fff}
+.gempty{margin-top:12px;border:3px dashed #1b1f4b40;border-radius:20px;padding:22px 12px;text-align:center;font-weight:800;color:#1b1f4b99}
+@media (max-width:420px){.cap{font-size:14px;padding:8px 4px;border-radius:20px}.cap .ce{display:block;margin:0 0 2px}.cap.on{border-radius:20px 20px 0 0}}
 .lothead{font-weight:800;font-size:18px;margin:6px 0 -4px;color:#1b1f4b}
 .tab{flex:1;min-width:130px;padding:10px 12px;border-radius:20px;background:#fff;font-weight:800;font-size:17px;box-shadow:0 5px 0 rgba(27,31,75,.16);text-align:center;line-height:1.1}
 .tab small{display:block;font-size:12px;opacity:.7}
@@ -321,7 +321,7 @@ const UI = {
   chief:["Chief Planner","Punong Tagaplano"], mapsub:["Your journey","Ang paglalakbay mo"],
   finalNexy:["Last step! You are the Chief Planner now.","Huling hakbang! Ikaw na ang Punong Tagaplano."],
   endNexy:["You did it! Your answers will help shape a real teen center.","Nagawa mo! Makakatulong ang mga sagot mo sa paghubog ng totoong teen center."],
-  coinsUsed:["coins spent","barya ang nagastos"], noCoins:["Not enough coins left. Tap something you chose to put it back and free up coins.","Kulang na ang barya. I-tap ang isang napili mo para ibalik ito at magkaroon ng barya."], finPick:["Choose your items from any of these 3 groups.","Pumili ng mga gusto mo mula sa alinman sa 3 grupong ito."], finPickSub:["Tap a group to open it and see what is inside. You can switch groups any time.","I-tap ang isang grupo para buksan at makita ang laman nito. Puwede kang lumipat ng grupo anumang oras."], grpSub0:["Whole areas of the grounds: courts, halls, gardens","Buong bahagi ng lupain: court, bulwagan, hardin"], grpSub1:["Rooms inside the buildings: studios, labs, lounges","Mga silid sa loob ng gusali: studio, lab, lounge"], grpSub2:["Small features that make it special","Maliliit na tampok na nagpapaganda rito"], each:["each","bawat isa"], openGrp:["Open ▾","Buksan ▾"], closeGrp:["Close ▴","Isara ▴"], closeThis:["Close this group ▴","Isara ang grupong ito ▴"], chosenHere:["chosen","napili"], itemsHere:["items","item"], spentHere:["coins spent here","baryang nagastos dito"], yourCenter:["Your teen center so far","Ang teen center mo sa ngayon"], bigSpaces:["Big spaces","Malalaking espasyo"], rooms:["Rooms","Mga silid"], details:["Details","Mga detalye"],
+  coinsUsed:["coins spent","barya ang nagastos"], noCoins:["Not enough coins left. Tap something you chose to put it back and free up coins.","Kulang na ang barya. I-tap ang isang napili mo para ibalik ito at magkaroon ng barya."], finPick:["Choose your items from any of these 3 groups.","Pumili ng mga gusto mo mula sa alinman sa 3 grupong ito."], finPickSub:["Tap a group to see its items. You can switch groups any time.","I-tap ang isang grupo para makita ang mga laman nito. Puwede kang lumipat ng grupo anumang oras."], tapGroup:["Tap a group above to see its items.","I-tap ang isang grupo sa itaas para makita ang mga laman nito."], grpSub0:["Whole areas of the grounds: courts, halls, gardens","Buong bahagi ng lupain: court, bulwagan, hardin"], grpSub1:["Rooms inside the buildings: studios, labs, lounges","Mga silid sa loob ng gusali: studio, lab, lounge"], grpSub2:["Small features that make it special","Maliliit na tampok na nagpapaganda rito"], each:["each","bawat isa"], openGrp:["Open ▾","Buksan ▾"], closeGrp:["Close ▴","Isara ▴"], closeThis:["Close this group ▴","Isara ang grupong ito ▴"], chosenHere:["chosen","napili"], itemsHere:["items","item"], spentHere:["coins spent here","baryang nagastos dito"], yourCenter:["Your teen center so far","Ang teen center mo sa ngayon"], bigSpaces:["Big spaces","Malalaking espasyo"], rooms:["Rooms","Mga silid"], details:["Details","Mga detalye"],
   download:["Download my answers (preview)","I-download ang mga sagot ko (preview)"]
 };
 const st = {
@@ -691,8 +691,7 @@ function viewFinale(){
   setScreen(`<div class="scr"><div class="fin"><div class="nexyrow">${nexy('wow','cheer')}<div class="bubble">${U('finalNexy')}</div></div>
     <div class="panel" style="margin:0 0 14px"><h2 style="font-size:24px">${T(F.title)}</h2><p style="margin:6px 0 0;font-size:17px">${T(F.intro)}</p></div>
     <div class="purse sticky"><div class="num emo" id="cnum">40</div><div class="txt">🪙 ${U('coinsLeft')}</div><div class="coinrow" id="crow"></div></div>
-    <div class="drawhint"><span class="emo">👇</span><span>${U('finPick')}<small>${U('finPickSub')}</small></span></div>
-    <div class="drawers" id="drawers"></div>
+    <div class="grpbox"><div class="grphint">👇 ${U('finPick')}<small>${U('finPickSub')}</small></div><div id="drawers"></div></div>
     <div class="lothead">🏗️ ${U('yourCenter')}</div><div class="lot" id="lot"></div></div>
     <div class="finbar"><button class="btn ghost small" data-act="finSkip">${U('skipStep')}</button><button class="btn green pulse" data-act="finDone" id="fdone" disabled>${U('build')} 🏗️</button></div></div>`);
   finRender();
@@ -702,12 +701,14 @@ function finRender(){
   $('#cnum').textContent=left; $('#crow').innerHTML=[...Array(F.purse)].map((_,k)=>`<i class="${k>=left?'gone':''}"></i>`).join('');
   const fd=$('#fdone'); fd.disabled = left!==0;
   const tint=['#fff1e6','#f1edff','#e2f8fb'], gem=['🏟️','🚪','⭐'], gname=k=>[U('bigSpaces'),U('rooms'),U('details')][k];
-  $('#drawers').innerHTML=F.tiers.map((t,k)=>{ const open=k===finTab, n=t.items.filter(i=>st.fin[i.id]).length;
-    return `<section class="drawer ${open?'open':''}" id="dr${k}" style="--c:${tc[k]};--t:${tint[k]}">
-      <button class="dhead" data-act="tab" data-k="${k}" aria-expanded="${open}"><span class="dem emo">${gem[k]}</span><span class="dtitle">${gname(k)}</span><span class="dside"><span class="dcost">${t.cost} 🪙 ${U('each')}</span><span class="dopen">${open?U('closeGrp'):U('openGrp')}</span></span><span class="dsub">${U('grpSub'+k)}</span></button>
-      <div class="dmeta"><span>${n} ${U('chosenHere')} · ${t.items.length} ${U('itemsHere')}</span><span>${n*t.cost} ${U('spentHere')}</span></div>
-      ${open?`<div class="dbody"><div class="shop">${t.items.map(i=>`<button class="tile ${st.fin[i.id]?'sel':''} ${!st.fin[i.id]&&left<t.cost?'dim':''}" data-act="buy" data-id="${i.id}"><span class="cost">${t.cost}🪙</span><span class="tgrp">${gname(k)}</span><span class="em emo">${i.emoji}</span><span>${IT(i)}</span></button>`).join('')}</div><button class="dclose" data-act="tab" data-k="${k}">${U('closeThis')}</button></div>`:''}
-    </section>`; }).join('');
+  const caps=F.tiers.map((t,k)=>{ const n=t.items.filter(i=>st.fin[i.id]).length;
+    return `<button class="cap ${k===finTab?'on':''}" data-act="tab" data-k="${k}" aria-pressed="${k===finTab}" style="--c:${tc[k]}"><span class="ce emo">${gem[k]}</span>${gname(k)}<small>${t.cost} 🪙 ${U('each')}</small>${n?`<span class="cnt">${n}</span>`:''}</button>`; }).join('');
+  let panel;
+  if(finTab<0) panel=`<div class="gempty">☝️ ${U('tapGroup')}</div>`;
+  else { const t=F.tiers[finTab], n=t.items.filter(i=>st.fin[i.id]).length;
+    panel=`<div class="gpanel k${finTab}" style="--c:${tc[finTab]};--t:${tint[finTab]}"><div class="gtitle"><span>${gem[finTab]} ${U('grpSub'+finTab)}</span><span>${n} ${U('chosenHere')} · ${n*t.cost} 🪙</span></div>
+      <div class="shop">${t.items.map(i=>`<button class="tile ${st.fin[i.id]?'sel':''} ${!st.fin[i.id]&&left<t.cost?'dim':''}" data-act="buy" data-id="${i.id}"><span class="cost">${t.cost}🪙</span><span class="tgrp">${gname(finTab)}</span><span class="em emo">${i.emoji}</span><span>${IT(i)}</span></button>`).join('')}</div></div>`; }
+  $('#drawers').innerHTML=`<div class="caps">${caps}</div>${panel}`;
   let lot='', any=false;
   F.tiers.forEach((tr,k)=>{ const ps=tr.items.filter(i=>st.fin[i.id]); if(ps.length){ any=true; lot+=`<div class="lotlabel">${[U('bigSpaces'),U('rooms'),U('details')][k]}</div><div class="lotrow">${ps.map(i=>`<div class="piece t${k}" title="${esc(i.en)}"><span class="e emo">${i.emoji}</span><small>${IT(i)}</small></div>`).join('')}</div>`; } });
   $('#lot').innerHTML = any ? lot : `<div class="emptylot">🏗️ ${U('tapBuild')}</div>`;
@@ -831,7 +832,7 @@ document.addEventListener('click',e=>{
     afterPick(380); }
   else if(a==='next'){ sfx.next(); advance(); }
   else if(a==='back'){ sfx.back(); const s=S_(); if(s.t==='card'&&card().kind==='need'&&st.needPage){ st.needPage=0; viewCard(s); } else if(s.t==='card'||s.t==='wish'){ go(prevIdx(st.i)); } }
-  else if(a==='tab'){ const k=+b.dataset.k; finTab = finTab===k ? -1 : k; sfx.tap(); finRender(); const d=$('#dr'+k); if(d) d.scrollIntoView({behavior:'smooth',block:'start'}); }
+  else if(a==='tab'){ const k=+b.dataset.k; finTab = finTab===k ? -1 : k; sfx.tap(); finRender(); const g=$('.grpbox'); if(g && g.getBoundingClientRect().top<0) g.scrollIntoView({behavior:'smooth',block:'start'}); }
   else if(a==='buy'){ const id=b.dataset.id, t=DATA.finale.tiers.find(t=>t.items.some(i=>i.id===id)); if(st.fin[id]){ delete st.fin[id]; sfx.uncoin(); } else if(coinsLeft()>=t.cost){ st.fin[id]=1; sfx.coin(); } else { sfx.buzz(); toast(raw(UI.noCoins)); return; } save(); finRender(); if(coinsLeft()===0){ sfx.win(); confetti(60,innerWidth/2,innerHeight-120); toast('🪙 0 — '+raw(UI.build)); } }
   else if(a==='wishGo'){ (S_().k===1 ? sfx.sparkle() : sfx.next()); advance(); }
   else if(a==='finDone'){ st.finSkipped=false; advance(); }
