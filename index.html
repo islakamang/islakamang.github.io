@@ -6,6 +6,22 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#7be0ff">
 <title>Isla KAMANG</title>
+<meta name="description" content="Ilagan City is planning a Citywide Teen Center. Play the game survey, build your dream teen center, and rank up to Chief Architect. Ages 10 to 19, about 10 minutes.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Isla KAMANG">
+<meta property="og:locale" content="en_PH">
+<meta property="og:locale:alternate" content="fil_PH">
+<meta property="og:url" content="https://kamangsurvey.netlify.app/">
+<meta property="og:title" content="YOU DECIDE. YOU DESIGN. Build your Citywide Teen Center">
+<meta property="og:description" content="Ilagan City is planning a Citywide Teen Center, and teens like YOU can help shape it. Play the game, build your dream center, and rank up to Chief Architect. Ages 10 to 19. Ikaw ang magdidisenyo!">
+<meta property="og:image" content="https://kamangsurvey.netlify.app/og-poster.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Poster: You decide. You design. Scan the QR code or open kamangsurvey.netlify.app to help design the Citywide Teen Center of Ilagan City.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="YOU DECIDE. YOU DESIGN. Build your Citywide Teen Center">
+<meta name="twitter:description" content="Play the game, build your dream teen center, and rank up to Chief Architect. Ages 10 to 19.">
+<meta name="twitter:image" content="https://kamangsurvey.netlify.app/og-poster.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
@@ -209,6 +225,16 @@ textarea{min-height:150px;resize:vertical}
 @keyframes pop{from{transform:scale(0) translateY(-40px);opacity:0}to{transform:none;opacity:1}}
 .emptylot{position:relative;z-index:2;text-align:center;font-weight:800;color:#1b1f4b;padding:30px 10px;border:4px dashed #1b1f4b55;border-radius:22px;background:#ffffff66;margin-top:14px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap}
+/* ---------- share poster (v11f) ---------- */
+.posterlink{display:block;width:min(100%,430px);margin:12px auto 6px;border-radius:24px;overflow:hidden;box-shadow:0 10px 0 rgba(27,31,75,.16),0 22px 40px rgba(27,31,75,.25);transition:transform .15s;position:relative;background:#cfefff}
+.posterlink:hover{transform:translateY(-3px) rotate(-.4deg)}
+.posterlink img{display:block;width:100%;height:auto}
+.posterlink:focus-visible{outline:4px solid #1b1f4b;outline-offset:3px}
+.tapposter{display:inline-block;margin:6px 0 2px;font-weight:800;font-size:15px;background:#1b1f4b;color:#fff;border-radius:999px;padding:5px 16px;animation:readyGlow 1.8s ease-in-out infinite}
+.shareacts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 4px}
+.sharecta{margin-top:12px;display:grid;gap:8px;grid-template-columns:1fr}
+.musichint{font-weight:800;font-size:15px;color:#1b1f4b;background:#fff;border-radius:999px;padding:6px 16px;box-shadow:0 4px 0 rgba(27,31,75,.14);animation:readyGlow 1.8s ease-in-out infinite}
+
 /* ---------- ranks: one level per stage (v11e) ---------- */
 #hudrank{background:#1b1f4b;color:#fff}
 #hudrank .lv{background:var(--gold);color:#6b3e00;border-radius:999px;padding:1px 8px;margin-right:6px;font-size:13px}
@@ -350,7 +376,7 @@ const UI = {
   start:["START THE JOURNEY","SIMULAN ANG PAGLALAKBAY"], tag:["Build the teen center of your dreams","Buuin ang teen center ng mga pangarap mo"],
   meta:["About 8–11 minutes · Anonymous · For teens 10–19, in Ilagan and beyond · 🔊 Turn up your volume","Mga 8–11 minuto · Anonymous · Para sa mga teen na 10–19, sa Ilagan at saanman · 🔊 Lakasan ang volume"], musicHint:["🎵 Tap the 🔊 button at the top to turn on the music","🎵 Pindutin ang 🔊 sa itaas para buksan ang musika"],
   hello:["Hi! I'm Nexy, your guide. Ready to plan a teen center?","Kumusta! Ako si Nexy, ang gabay mo. Handa ka na bang magplano ng teen center?"],
-  letsgo:["Let's go!","Tara na!"], next:["Next","Susunod"], tipHead:["Changing the language","Pagpalit ng wika"], tipBody:["You chose English. To switch to Filipino at any time, tap this button at the top of the screen.","Pinili mo ang Filipino. Para lumipat sa English anumang oras, i-tap ang button na ito sa itaas ng screen."], tipBody2:["It stays there on every screen, and your answers are kept when you switch.","Nandiyan ito sa bawat screen, at hindi mawawala ang mga sagot mo kapag lumipat ka."], gotIt:["Got it!","Sige!"], shareHead:["Invite your friends!","Imbitahin ang mga kaibigan mo!"], shareSub:["Share the survey so more teens can help design KAMANG.","Ibahagi ang survey para mas maraming teen ang makatulong sa disenyo ng KAMANG."], shareMsg:["I helped design KAMANG, the Ilagan City Teen Center! If you are 10 to 19, take the survey too:","Tumulong ako sa disenyo ng KAMANG, ang Teen Center ng Lungsod ng Ilagan! Kung 10 hanggang 19 ka, sagutin mo rin ang survey:"], copyLink:["Copy link","Kopyahin ang link"], copied:["Link copied!","Nakopya na ang link!"], shareNative:["Share…","Ibahagi…"], scanMe:["Scan to answer","I-scan para sumagot"], saveQR:["Save QR code","I-save ang QR code"], shareNote:["Each button opens the app or site so you can check the post before sharing.","Bubuksan ng bawat button ang app o site para masilip mo muna bago i-share."], skip:["Skip","Laktawan"], answerFirst:["Choose an answer to continue","Pumili ng sagot para magpatuloy"], noneHere:["None of these: I already have good places for them","Wala: may magandang lugar na ako para sa mga ito"], answerFirstToast:["Please choose an answer first.","Pumili muna ng sagot."], typeOther:["Type your answer in the box","Isulat ang sagot mo sa kahon"], back:["Back","Bumalik"], done:["Done","Tapos na"],
+  letsgo:["Let's go!","Tara na!"], next:["Next","Susunod"], tapMusic:["🎵 Tap anywhere to start the music","🎵 Mag-tap kahit saan para magsimula ang musika"], shareAd:["🌽🏗️ YOU DECIDE. YOU DESIGN! Ilagan City is planning a Citywide Teen Center, and teens like YOU can help shape it. Play the Isla KAMANG game (ages 10 to 19, about 10 minutes), build your dream teen center with 40 coins, and rank up to Chief Architect! 👉 ","🌽🏗️ IKAW ANG MAGDIDISENYO! Pinaplano ng Lungsod ng Ilagan ang isang Citywide Teen Center, at puwede kang tumulong na hubugin ito. Laruin ang Isla KAMANG (edad 10 hanggang 19, mga 10 minuto), buuin ang pangarap mong teen center gamit ang 40 barya, at umakyat hanggang Punong Arkitekto! 👉 "], shareAd2:["(Under 18? Ask a parent or guardian first.)","(Wala pang 18? Magpaalam muna sa magulang o tagapag-alaga.)"], tapPoster:["👆 Tap the poster to open the survey","👆 I-tap ang poster para buksan ang survey"], sharePoster:["Share the poster","Ibahagi ang poster"], savePoster:["Save poster","I-save ang poster"], copyMsg:["Copy message","Kopyahin ang mensahe"], msgCopied:["Message copied! Paste it anywhere.","Nakopya na ang mensahe! I-paste kahit saan."], igNote:["For Instagram and TikTok, save the poster, post it to your story, and paste the link.","Para sa Instagram at TikTok, i-save ang poster, i-post sa story, at i-paste ang link."], tipHead:["Changing the language","Pagpalit ng wika"], tipBody:["You chose English. To switch to Filipino at any time, tap this button at the top of the screen.","Pinili mo ang Filipino. Para lumipat sa English anumang oras, i-tap ang button na ito sa itaas ng screen."], tipBody2:["It stays there on every screen, and your answers are kept when you switch.","Nandiyan ito sa bawat screen, at hindi mawawala ang mga sagot mo kapag lumipat ka."], gotIt:["Got it!","Sige!"], shareHead:["Spread the word!","Ipakalat ang balita!"], shareSub:["Your friends can help design the Citywide Teen Center too. Share the poster!","Makakatulong din ang mga kaibigan mo sa disenyo ng Citywide Teen Center. Ibahagi ang poster!"], shareMsg:["I helped design KAMANG, the Ilagan City Teen Center! If you are 10 to 19, take the survey too:","Tumulong ako sa disenyo ng KAMANG, ang Teen Center ng Lungsod ng Ilagan! Kung 10 hanggang 19 ka, sagutin mo rin ang survey:"], copyLink:["Copy link","Kopyahin ang link"], copied:["Link copied!","Nakopya na ang link!"], shareNative:["Share…","Ibahagi…"], scanMe:["Scan to answer","I-scan para sumagot"], saveQR:["Save QR code","I-save ang QR code"], shareNote:["Each button opens the app or site so you can check the post before sharing.","Bubuksan ng bawat button ang app o site para masilip mo muna bago i-share."], skip:["Skip","Laktawan"], answerFirst:["Choose an answer to continue","Pumili ng sagot para magpatuloy"], noneHere:["None of these: I already have good places for them","Wala: may magandang lugar na ako para sa mga ito"], answerFirstToast:["Please choose an answer first.","Pumili muna ng sagot."], typeOther:["Type your answer in the box","Isulat ang sagot mo sa kahon"], back:["Back","Bumalik"], done:["Done","Tapos na"],
   cont:["Continue","Magpatuloy"], boarding:["BOARDING PASS","BOARDING PASS"], boardsub1:["First, a quick question before we sail!","Una, isang mabilis na tanong bago tayo maglayag!"], boardsub2:["Last one before we sail!","Huli na bago tayo maglayag!"],
   otherage:["I am younger than 10 or older than 19","Mas bata ako sa 10 o mas matanda sa 19"],
   nexyGate:["First, I just need to know who is sailing with me.","Una, kailangan ko lang malaman kung sino ang kasama kong maglalayag."],
@@ -431,8 +457,9 @@ function load(){ try{ const j=JSON.parse(sessionStorage.getItem('kamang')||'null
 function wipe(){ try{ sessionStorage.removeItem('kamang'); }catch(e){} }
 
 /* ======================= sound: loud background music + game effects (all synthesized, no audio files) ======================= */
-// st.snd: 0 = off, 1 = effects only, 2 = music and effects (the default; the speaker button cycles 2 > 1 > 0)
-try{ const v=localStorage.getItem('kamang_snd'); if(v!==null && [0,1,2].includes(+v)) st.snd=+v; }catch(e){}
+// st.snd: 2 = music and effects (the default, tried at once on opening), 0 = off. The speaker button switches between the two;
+// the choice is kept for the visit only, so every new opening starts with the music on.
+try{ const v=sessionStorage.getItem('kamang_snd'); if(v!==null && [0,2].includes(+v)) st.snd=+v; }catch(e){}
 let AC, busMain, busMusic, busSfx, NB;
 function impulse(sec,decay){ const r=AC.sampleRate, n=Math.floor(r*sec), b=AC.createBuffer(2,n,r); for(let c=0;c<2;c++){ const d=b.getChannelData(c); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,decay); } return b; }
 function ac(){ try{ if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)();
@@ -502,7 +529,7 @@ function musicTick(){ if(!M.on||!AC) return; const sd=60/M.tempo/4; while(M.next
 function musicStart(){ if(M.on||!ac()) return; M.on=true; M.next=AC.currentTime+.08; M.step=0; const g=busMusic.gain, now=AC.currentTime;
   g.cancelScheduledValues(now); g.setValueAtTime(g.value,now); g.linearRampToValueAtTime(1.5,now+1.2); M.timer=setInterval(musicTick,60); }
 function musicStop(){ if(!M.on) return; M.on=false; clearInterval(M.timer); if(AC){ const g=busMusic.gain, now=AC.currentTime; g.cancelScheduledValues(now); g.setValueAtTime(g.value,now); g.linearRampToValueAtTime(0,now+.3); } }
-function applySound(){ if(st.snd>=2) musicStart(); else musicStop(); try{ localStorage.setItem('kamang_snd',st.snd); }catch(e){} }
+function applySound(){ if(st.snd>=2) musicStart(); else musicStop(); try{ sessionStorage.setItem('kamang_snd',st.snd); }catch(e){} }
 function musicZone(id){ const k={A:0,'1':2,'2':4,D:5,'3':7,'4':9,F:0}; M.shift=k[id]!==undefined?k[id]:0; M.tempo=id==='F'?126:116; }
 function zoneKey(){ if(st.phase!=='steps') return 'A'; const s=STEPS[st.i]; return (s.p!==undefined && DATA.parts[s.p]) ? DATA.parts[s.p].id : 'F'; }
 function unlockAudio(){ if(st.snd<=0 || !ac()) return;                       // phones allow sound only after a finished tap
@@ -623,9 +650,11 @@ const NODE_POS = [[11,72],[26,48],[44,66],[60,38],[77,58],[88,22]];
 function hud(){
   const on = st.phase==='steps' && STEPS[st.i].t!=='end';
   $('#hud').classList.toggle('on', on);
-  $('#toplang').style.display = on || (st.phase==='pre' && st.pre==='lang') ? 'none' : 'flex';   // the language screen is itself the choice
+  $('#toplang').style.display = on ? 'none' : 'flex';
+  $('#tlang').style.display = (st.phase==='pre' && st.pre==='lang') ? 'none' : '';   // the language screen is itself the choice; the music button stays
   $('#hlang').textContent = $('#tlang').textContent = st.lang===0 ? 'EN | fil' : 'en | FIL';
-  $('#hsnd').textContent = $('#tsnd').textContent = ['🔇','🔔','🔊'][st.snd];
+  $('#hsnd').textContent = $('#tsnd').textContent = st.snd>=2 ? '🔊' : '🔇';
+  [$('#hsnd'),$('#tsnd')].forEach(b=>{ b.setAttribute('aria-label', st.snd>=2 ? 'Music on. Tap to turn off' : 'Music off. Tap to turn on'); b.setAttribute('aria-pressed', st.snd>=2); });
   if(on){ const s=STEPS[st.i], m=stageMeta(s.p); $('#hudzone').innerHTML = `<span class="emo">${m.emoji}</span><span>${T(m.name)}</span>`;
     { const np=DATA.parts.length, base=(s.p===undefined) ? (s.t==='finale'?np:np+1) : s.p, lv=Math.max(0,Math.min(base + (s.t==='done'?1:0), np+1)), r=RANKS()[lv]; $('#hudrank').innerHTML=`<span class="lv">${U('level')} ${lv}</span><span class="emo">${r.emo}</span><span class="rn">&nbsp;${T(r.name)}</span>`; }
     document.documentElement.style.setProperty('--zone', m.color); document.documentElement.style.setProperty('--zone2', lighten(m.color));
@@ -647,7 +676,9 @@ const PRE = {
     setScreen(`<div class="scr"><div class="langpick">${nexy('happy','wave')}
       <h1>Choose your language<small>Piliin ang iyong wika</small></h1>
       <div class="langbtns"><button class="langbtn" data-act="pickLang" data-v="0"><span class="lg emo">👋</span><b>English</b><span class="sm">Hello!</span></button>
-        <button class="langbtn" data-act="pickLang" data-v="1"><span class="lg emo">🙌</span><b>Filipino</b><span class="sm">Kumusta!</span></button></div></div></div>`); },
+        <button class="langbtn" data-act="pickLang" data-v="1"><span class="lg emo">🙌</span><b>Filipino</b><span class="sm">Kumusta!</span></button></div>
+      <p class="musichint" id="musichint" style="display:none">🎵 Tap anywhere to start the music · Mag-tap kahit saan para sa musika</p></div></div>`);
+    const mt=setInterval(()=>{ const el=$('#musichint'); if(!el){ clearInterval(mt); return; } const run=AC&&AC.state==='running'&&M.on; el.style.display=(st.snd>=2&&!run)?'inline-block':'none'; },350); },
   splash(){ theme('N');
     const d=setScreen(`<div class="scr"><div class="splash">${SCENE}
       <div class="top"><div class="logo"><small>${T(["WELCOME TO","MALIGAYANG PAGDATING SA"])}</small>ISLA KAMANG</div><div class="tag">${U('tag')}</div></div>
@@ -797,28 +828,40 @@ function viewEnd(){
     ${shareBox()}</div></div>`);
   confetti(220); sfx.win(); submitAll();
 }
-/* ---------- sharing: QR code, link, and the share pages of social apps (nothing is posted for the teen) ---------- */
+/* ---------- sharing: a poster (tap it to open the survey), an ad-style message with the link, and the share pages of social apps ---------- */
 const touchDev = () => matchMedia('(pointer:coarse)').matches;
-function shareLinks(){ const u=encodeURIComponent(DATA.share.url), m=raw(UI.shareMsg), t=encodeURIComponent(m), tu=encodeURIComponent(m+' '+DATA.share.url);
+const posterFile = () => 'poster-' + ['en','fil'][st.lang] + '.png';
+const shareText = () => raw(UI.shareAd) + DATA.share.url + '\n' + raw(UI.shareAd2);
+function shareLinks(){ const u=encodeURIComponent(DATA.share.url), tu=encodeURIComponent(shareText()), t=encodeURIComponent(raw(UI.shareAd).replace(/ 👉 $/,''));
   const L=[['Facebook','#1877f2','📘','https://www.facebook.com/sharer/sharer.php?u='+u],
     ['Messenger','#7b5cff','💬','fb-messenger://share/?link='+u, true],
     ['WhatsApp','#25a35a','🟢','https://wa.me/?text='+tu],
     ['Viber','#7360f2','📞','viber://forward?text='+tu, true],
     ['Telegram','#2aa1da','✈️','https://t.me/share/url?url='+u+'&text='+t],
     ['X','#111','✖️','https://twitter.com/intent/tweet?text='+t+'&url='+u],
-    ['Email','#5a5a5a','✉️','mailto:?subject='+encodeURIComponent('KAMANG Teen Survey')+'&body='+tu]];
+    ['Email','#5a5a5a','✉️','mailto:?subject='+encodeURIComponent('YOU DECIDE. YOU DESIGN. KAMANG Teen Survey')+'&body='+tu]];
   return L.filter(x=>!x[4]||touchDev()); }
-function shareBox(){ const S=DATA.share;
+function shareBox(){ const S=DATA.share, alt=raw(UI.tapPoster);
   return `<div class="panel sharebox"><h2>📣 ${U('shareHead')}</h2><p class="sub" style="margin:0">${U('shareSub')}</p>
-    <div class="sharegrid"><div class="qrcard" id="qrcard">${S.qr}<small>${U('scanMe')}</small></div>
-      <div class="sharecol">
-        <div class="linkrow"><input id="shareurl" readonly value="${esc(S.url)}" aria-label="Link"><button class="btn small" data-act="copyLink">${U('copyLink')}</button></div>
-        ${navigator.share?`<button class="btn green" data-act="shareNative">📤 ${U('shareNative')}</button>`:''}
-        <div class="socials">${shareLinks().map(x=>`<a class="soc" style="background:${x[1]}" href="${x[3]}" target="_blank" rel="noopener noreferrer"><span class="emo">${x[2]}</span>${x[0]}</a>`).join('')}</div>
-        <button class="btn small ghost" data-act="saveQR">⬇️ ${U('saveQR')}</button>
-        <p class="sub" style="margin:0;font-size:13px">${U('shareNote')}</p></div></div></div>`; }
-async function copyLink(){ const v=DATA.share.url; try{ await navigator.clipboard.writeText(v); }catch(e){ const i=$('#shareurl'); if(i){ i.select(); try{ document.execCommand('copy'); }catch(_){} } } toast(raw(UI.copied)); }
-async function shareNative(){ try{ await navigator.share({ title:'KAMANG Teen Survey', text:raw(UI.shareMsg), url:DATA.share.url }); }catch(e){} }
+    <a class="posterlink" href="${S.url}" target="_blank" rel="noopener noreferrer" aria-label="${esc(alt)}"><img src="${posterFile()}" alt="${esc(raw(UI.tapPoster))}" width="1080" height="1350"></a>
+    <div class="tapposter">${U('tapPoster')}</div>
+    <div class="sharecta">
+      ${navigator.share?`<button class="btn green" data-act="shareNative">📤 ${U('sharePoster')}</button>`:''}
+      <div class="linkrow"><input id="shareurl" readonly value="${esc(S.url)}" aria-label="Link"><button class="btn small" data-act="copyLink">${U('copyLink')}</button></div>
+      <div class="socials">${shareLinks().map(x=>`<a class="soc" style="background:${x[1]}" href="${x[3]}" target="_blank" rel="noopener noreferrer"><span class="emo">${x[2]}</span>${x[0]}</a>`).join('')}</div>
+      <div class="shareacts"><button class="btn small violet" data-act="copyMsg">📝 ${U('copyMsg')}</button><button class="btn small ghost" data-act="savePoster">⬇️ ${U('savePoster')}</button><button class="btn small ghost" data-act="saveQR">⬇️ ${U('saveQR')}</button></div>
+      <p class="sub" style="margin:0;font-size:13px">${U('igNote')}<br>${U('shareNote')}</p></div>
+    <div id="qrcard" hidden>${S.qr}</div></div>`; }
+async function copyText(v, input){ try{ await navigator.clipboard.writeText(v); }catch(e){ const i=input||document.createElement('textarea'); if(!input){ i.value=v; document.body.appendChild(i); } i.select(); try{ document.execCommand('copy'); }catch(_){} if(!input) i.remove(); } }
+async function copyLink(){ await copyText(DATA.share.url, $('#shareurl')); toast(raw(UI.copied)); }
+async function copyMsg(){ await copyText(shareText()); toast(raw(UI.msgCopied)); }
+async function posterBlob(){ const r=await fetch(posterFile()); if(!r.ok) throw new Error('poster'); return await r.blob(); }
+async function shareNative(){ const data={ title:'KAMANG Teen Survey', text:shareText(), url:DATA.share.url };
+  try{ const b=await posterBlob(), f=new File([b], 'KAMANG-'+posterFile(), {type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[f]})){ await navigator.share({ files:[f], title:data.title, text:data.text }); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  try{ await navigator.share(data); }catch(e){} }
+async function savePoster(){ try{ const b=await posterBlob(), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='KAMANG-'+posterFile(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); }
+  catch(e){ window.open(posterFile(), '_blank'); } }
 function saveQR(){ const svg=$('#qrcard svg'); if(!svg) return; const xml=new XMLSerializer().serializeToString(svg); const img=new Image();
   img.onload=()=>{ const c=document.createElement('canvas'); c.width=c.height=720; const g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,720,720); g.drawImage(img,40,40,640,640);
     c.toBlob(b=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='KAMANG-survey-QR.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); },'image/png'); };
@@ -921,6 +964,8 @@ document.addEventListener('click',e=>{
   else if(a==='pickLang'){ st.lang=+b.dataset.v; document.documentElement.lang=['en','fil'][st.lang]; try{localStorage.setItem('kamang_lang',st.lang)}catch(e){} sfx.pick(); pre('splash'); setTimeout(langTip,450); }
   else if(a==='tipOk'){ sfx.tap(); closeTip(); }
   else if(a==='copyLink'){ copyLink(); }
+  else if(a==='copyMsg'){ copyMsg(); }
+  else if(a==='savePoster'){ savePoster(); }
   else if(a==='shareNative'){ shareNative(); }
   else if(a==='saveQR'){ saveQR(); }
   else if(a==='toInfo') pre('info');
@@ -957,7 +1002,7 @@ document.addEventListener('click',e=>{
 });
 function toggleLang(){ sfx.lang(); if(PROTO) setTimeout(protoSetup,0); if(st.phase==='pre'&&st.pre==='consent'){ window.__cd=($('#cf0')||{}).value||''; window.__cc=($('#cchk')||{}).checked; } if(st.phase==='pre'&&st.pre==='assent'){ window.__ac=($('#achk')||{}).checked; }
   st.lang=1-st.lang; document.documentElement.lang=['en','fil'][st.lang]; try{localStorage.setItem('kamang_lang',st.lang)}catch(e){} const p=document.activeElement; render(); }
-function toggleSnd(){ st.snd = (st.snd+2)%3; applySound(); sfx.pick(); hud(); }
+function toggleSnd(){ st.snd = st.snd>=2 ? 0 : 2; if(st.snd>=2) unlockAudio(); applySound(); sfx.pick(); hud(); }
 ['#hlang','#tlang'].forEach(s=>$(s).addEventListener('click',toggleLang));
 ['#hsnd','#tsnd'].forEach(s=>$(s).addEventListener('click',toggleSnd));
 $('#coach').addEventListener('click',e=>{ if(e.target.id==='coach') closeTip(); });
@@ -969,6 +1014,7 @@ try{ const l=localStorage.getItem('kamang_lang'); if(l!==null) st.lang=+l; else 
 document.documentElement.lang=['en','fil'][st.lang];
 protoSetup();
 if(load()){ render(); } else { render(); }
+if(st.snd>=2){ try{ ac(); musicStart(); }catch(e){} }   // browsers may hold the sound until the first touch; unlockAudio() then lets it play
 window.__kamang = { st, STEPS, DATA, buildPayload, go, render, coinsLeft, nextIdx, prevIdx, active, topNeeds, progress, sndState:()=>({ctx:AC&&AC.state,music:M.on,snd:st.snd,shift:M.shift,step:M.step}), sfx };
 })();
 </script>
