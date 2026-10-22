@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>KAMANG Research Analytics</title>
-<script src="config.js"></script>
+<script src="analytics-config.js"></script>
 <style>
 :root{--ink:#14201b;--ink2:#46524c;--paper:#ffffff;--bg:#f3f1ea;--green:#1f4e3d;--teal:#2f7f73;--gold:#c08a2b;--terra:#b5562f;--blue:#2b6cb0;--line:#d9d6cb;--soft:#ebe8dd;--ok:#2f7f4f;--warn:#b5562f;--radius:12px;
   --font:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
@@ -64,6 +64,8 @@ input,select{font:inherit}
 .facts div{background:#faf9f4;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:8px 11px;font-size:13.5px}
 .facts b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--gold);margin-bottom:2px}
 .facts .formula{grid-column:1/-1}
+.facts .yields{grid-column:1/-1;background:#f1f7ef;border-left-color:#3f8a4a}
+.facts .yields b{color:#2f6e39}
 .facts .formula span{font-family:"Cambria Math",Cambria,"Times New Roman",serif;font-size:14px}
 .insights li{margin:5px 0}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
@@ -127,6 +129,7 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
   .card .rq{background:none;color:#000;border:1pt solid #000}
   .facts div{background:none;border:0;border-left:2pt solid #000;border-radius:0}
   .facts b{color:#000}
+  .facts .yields{background:none;border-left:2pt solid #000}.facts .yields b{color:#000}
   th{background:#fff;color:#000;border-top:1.2pt solid #000;border-bottom:1.2pt solid #000;position:static}
   td{border-top:0.4pt solid #888}
   tr:nth-child(even) td{background:#fff}
@@ -447,6 +450,24 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
   const MIN_N = 10;                       // a subgroup smaller than this is not reported on its own (Chapter 3.6)
   const T = E.table, B = E.bars, ST = E.stack;
 
+  // what each analysis gives the study, in plain words (shown on the page and in the Excel export)
+  const YIELDS = {
+    quality: 'Whether there are enough trustworthy answers to stand on. It gives the n behind every table in Chapter 4, shows whether the target of 50 is met and all three age bands are present, and shows the panel that careless answers were removed openly, not hidden.',
+    profile: 'Who the findings speak for. If one age band, sex, or place dominates, the design conclusions lean toward that group, and Chapter 4 says so. It is also the user profile the space program is sized for.',
+    needs: 'Which spaces the center must have first. A need that many teens feel strongly and that has no good place near them is the strongest reason to build a space for it, so the gap ranking sets the order of the space program. The age tests show whether the youngest and the oldest users need a different emphasis.',
+    triples: 'Direct answers to specific design choices. For each set it says which space to design, or that teens are split and the building should offer more than one option. Each clear result becomes a design decision with teen evidence behind it.',
+    details: 'The specifics that make a general wish buildable. Knowing that teens want a quiet place is not enough to draw it; the follow-ups say which kind of place and which features, so each design strategy gets its details.',
+    places: 'How to make the center feel safe without making it feel like a guarded institution: whether teens rely on light and open sightlines, on staff in view, or on guards and cameras. It sets the balance of passive surveillance and active supervision in the plan.',
+    expect: 'The character and the dimensions of the spaces: the window and courtyard strategy, the mix of nooks and open seating, the materials and colors, the local identity to show, what lets teens make a space their own, and the size of tables and nooks from the usual group size.',
+    game: 'What comes first when not everything can be built. Coins are limited, so the ranking shows real priority rather than a wish list. It orders the big spaces, rooms, and details in the space program and in phasing, and shows whether age bands would spend differently.',
+    cross: 'Whether one design fits all users or the plan should be graded. A real difference between age bands (or between girls and boys, or between areas) supports separate or adjustable spaces, such as different refuge and supervision for the youngest teens. No difference supports one shared design.',
+    ilagan: 'Whether teens from outside Ilagan changed the conclusions. The building is for Ilagan, so each key finding is recomputed with Ilagan residents only. If the results hold, the whole sample can be used with confidence; if one changes, Chapter 4 uses the Ilagan result for that decision.',
+    segments: 'Whether there are distinct kinds of users, such as an active social group and a quiet study group, rather than one average teen. Distinct segments justify zoning the center for each group; a weak silhouette means teens are not clearly split and a mixed program is enough.',
+    open: 'What the fixed options missed. Themes that recur in the teens’ own words confirm or add to the closed-question results, and chosen quotations give Chapter 4 the teens’ voice beside the numbers.',
+    implications: 'The bridge from survey results to design. All evidence is gathered under each design consideration so that each design strategy can be kept, adjusted, or dropped, and carried into the design guidelines and the space program.',
+    methods: 'One place where the panel can check that every number in Chapter 4 comes from a stated, standard formula, so each result is traceable and defensible.',
+  };
+
   function analyse(D, cl, opts) {
     opts = opts || {};
     const valid = cl.valid, N = valid.length, cb = D.cb, it = D.items;
@@ -719,6 +740,62 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
       });
     }
 
+    // ---------------------------------------------------------------------------------------------- 11b Ilagan-only check (D69)
+    {
+      const ilg = valid.filter(r => r.a.A2 === 0), away = valid.filter(r => r.a.A2 === 1 || r.a.A2 === 2), noAns = N - ilg.length - away.length;
+      const blocks = [T('Who is compared', ['Group', 'n', '% of valid'], [['Live in the City of Ilagan', ilg.length, E.pct(ilg.length, N)], ['Live elsewhere (rest of Isabela or outside)', away.length, E.pct(away.length, N)], ['Residence not answered', noAns, E.pct(noAns, N)]], { fmt: ['text', 'n', 'pct'] })];
+      const chk = { total: 0, same: 0, changed: [], status: '' };
+      // the key findings, recomputed for any set of respondents
+      const gapRank = set => need.map((r, k) => ({ k, v: set.length ? set.filter(x => x.a[r.id] >= minS && (x.a.NPp || []).includes(k)).length / set.length : 0 })).sort((a, b) => b.v - a.v);
+      const tripleOf = (set, id) => { const c = [0, 0, 0, 0]; set.forEach(x => { const v = x.a[id]; if (v !== undefined && v >= 0 && v < 4) c[v]++; }); const ch = c.slice(0, 3), nch = S.sum(ch); if (!nch) return null; const top = ch.indexOf(Math.max(...ch)), gof = S.chiGOF(ch); return { c, top, share: ch[top] / nch, clear: !!(gof && gof.p < 0.05 && ch[top] / nch >= 0.45) }; };
+      const gameRank = (set, t) => { const pl = set.filter(r => !r.gameSkipped && Object.keys(r.g).length); const its = cb.items.filter(i => i.kind === 'game' && i.tier === t); return { n: pl.length, order: its.map(i => ({ i, v: pl.filter(r => r.g[i.id] === 1).length })).sort((a, b) => b.v - a.v).map(x => x.i) }; };
+      if (!N) { chk.status = 'empty'; blocks.push(E.note('No valid responses yet.')); }
+      else if (!away.length) { chk.status = 'all-ilagan'; blocks.push(E.note('Every valid respondent so far lives in the City of Ilagan, so the results in every other analysis are already the Ilagan results.')); }
+      else if (ilg.length < MIN_N) { chk.status = 'few'; blocks.push(E.note('Fewer than ' + MIN_N + ' Ilagan residents so far (' + ilg.length + '). The side-by-side check appears once there are ' + MIN_N + '.')); }
+      else {
+        const rowsC = [], mark = (what, all, il, same, note) => { chk.total++; if (same) chk.same++; else chk.changed.push(what); rowsC.push([what, all, il, same ? (note || 'Same') : 'Changed']); };
+        const gA = gapRank(valid), gI = gapRank(ilg), nm = k => E.short(need[k].q[0], 48);
+        mark('Largest need gap (rank 1 by Priority Gap Index)', nm(gA[0].k), nm(gI[0].k), gA[0].k === gI[0].k);
+        const t3 = g => g.slice(0, 3).map(x => x.k), sA = t3(gA), sI = t3(gI);
+        mark('Top 3 need gaps (in any order)', sA.map(nm).join('; '), sI.map(nm).join('; '), sA.every(k => sI.includes(k)));
+        cb.items.filter(i => i.kind === 'triple').forEach(i => {
+          const a = tripleOf(valid, i.id), b = tripleOf(ilg, i.id); if (!a || !b) return;
+          const lab = s => 'Space ' + 'ABC'[s.top] + ' (' + (100 * s.share).toFixed(0) + '%, ' + (s.clear ? 'clear' : 'not clear') + ')';
+          const split = !a.clear && !b.clear;                // no clear preference in either: the decision (offer more than one) is the same
+          mark('Set ' + i.id + ': leading space', lab(a), lab(b), a.top === b.top || split, a.top !== b.top ? 'No clear preference in either' : a.clear === b.clear ? 'Same' : 'Same leader, verdict differs');
+        });
+        ['Big spaces', 'Rooms', 'Details'].forEach((tn, t) => {
+          const a = gameRank(valid, t), b = gameRank(ilg, t); if (b.n < MIN_N) return;
+          mark('Coin game, ' + tn.toLowerCase() + ': most bought', E.short(a.order[0].q[0], 44), E.short(b.order[0].q[0], 44), a.order[0].id === b.order[0].id);
+        });
+        blocks.push(T('Key findings: all valid respondents against Ilagan residents only (' + chk.same + ' of ' + chk.total + ' unchanged)', ['Finding', 'All respondents (n = ' + N + ')', 'Ilagan only (n = ' + ilg.length + ')', 'Result'], rowsC, { fmt: ['text', 'text', 'text', 'text'], wide: true,
+          note: '“Same leader, verdict differs”: the same space leads, but the clear-preference verdict differs (often only because the Ilagan group is smaller).  “No clear preference in either”: the leading space differs, but neither group has a clear preference, so the design decision (offer more than one option) is the same.' }));
+        chk.status = 'done';
+      }
+      // do teens from elsewhere choose differently? (sets of three; need ratings are tested in the previous analysis)
+      if (ilg.length >= MIN_N && away.length >= MIN_N) {
+        const tr = cb.items.filter(i => i.kind === 'triple').map(i => {
+          const tab = [ilg, away].map(g => { const c = [0, 0, 0, 0]; g.forEach(x => { const v = x.a[i.id]; if (v !== undefined && v >= 0 && v < 4) c[v]++; }); return c; });
+          const cs = S.chiSquare(tab), lead = tab.map(c => { const ch = c.slice(0, 3), n = S.sum(ch); return n ? 'Space ' + 'ABC'[ch.indexOf(Math.max(...ch))] + ' ' + (100 * Math.max(...ch) / n).toFixed(0) + '%' : '–'; });
+          return { id: i.id, cs, lead };
+        });
+        const adj = S.holm(tr.map(x => (x.cs ? x.cs.p : NaN)));
+        blocks.push(T('Sets of three: Ilagan residents against teens from elsewhere (χ² test of independence)', ['Set', 'Ilagan: leading', 'Elsewhere: leading', 'χ²', 'df', 'p', 'Holm p', "Cramér's V"],
+          tr.map((x, k) => [x.id, x.lead[0], x.lead[1], x.cs ? x.cs.chi2 : NaN, x.cs ? x.cs.df : NaN, x.cs ? x.cs.p : NaN, adj[k], x.cs ? x.cs.V : NaN]),
+          { fmt: ['text', 'text', 'text', 'd2', 'n', 'p', 'p', 'd3'], note: 'Inferential test. Holm adjusts for the ' + tr.length + ' sets. With two small groups the expected counts can fall below 5; read the test with the percentages. The need ratings of the two groups are compared in the previous analysis.' }));
+        chk.tested = tr.filter((x, k) => adj[k] < 0.05).map(x => x.id);
+      } else if (away.length) blocks.push(E.note('Tests between Ilagan residents and teens from elsewhere need at least ' + MIN_N + ' in each group (now ' + ilg.length + ' and ' + away.length + ').'));
+      flags.ilagan = chk;
+      add({
+        id: 'ilagan', title: 'Ilagan-only check: do teens from elsewhere change the results?', rq: 'RQ2, RQ3 / Objectives 2–3',
+        intent: 'Confirm that admitting teens from outside the City of Ilagan (Section 3.3) does not change the findings on which the design of an Ilagan facility rests.',
+        description: 'The key findings are recomputed with Ilagan residents only and set beside the results for all valid respondents: the largest need gaps, the leading space in each set of three, and the most bought item in each tier of the coin game. The choices of Ilagan residents and of teens from elsewhere are also compared directly.',
+        formula: 'Ilagan only = valid respondents whose residence (A2) is the City of Ilagan.  Each finding uses the same formula as its own analysis (PGI; leading share and χ² goodness of fit; % bought).  Ilagan against elsewhere: χ² test of independence on 2 × 4 tables, Cramér’s V, Holm-adjusted across the sets.',
+        reading: 'If every finding is the same, the full sample can be used for the design with no qualification. Where a finding changes, Chapter 4 reports the Ilagan result for that decision and names the difference.',
+        blocks,
+      });
+    }
+
     // ---------------------------------------------------------------------------------------------- 12 segments
     {
       const ids = need.map(r => r.id); const full = valid.filter(r => ids.every(id => r.a[id] !== undefined));
@@ -811,6 +888,9 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
       if (isFinite(patron.p85)) insights.push('The design group size for nooks and tables is about ' + patron.p85.toFixed(0) + ' people (85th percentile of the usual group).');
       if (game.per && game.gn >= MIN_N) { const top = game.per.slice().sort((a, b) => b.pct - a.pct).slice(0, 3); insights.push('Most funded in the coin game: ' + top.map(p => E.short(p.name, 36) + ' ' + p.pct.toFixed(0) + '%').join('; ') + '.'); }
       if (flags.cross) insights.push(flags.cross.length + ' differences between age bands remain significant after correction' + (flags.cross.length ? ', led by ' + flags.cross.slice(0, 3).map(r => r.id).join(', ') : '') + '.');
+      if (flags.ilagan) { const c = flags.ilagan;
+        if (c.status === 'all-ilagan') insights.push('Every valid respondent lives in the City of Ilagan, so all results are Ilagan results.');
+        else if (c.status === 'done') insights.push('Ilagan-only check: ' + c.same + ' of ' + c.total + ' key findings are unchanged when teens from elsewhere are left out' + (c.changed.length ? '; changed: ' + c.changed.join(', ') : '') + '.'); }
       if (flags.segments) insights.push('Three need-pattern segments of ' + flags.segments.sizes.join(', ') + ' teens (silhouette ' + flags.segments.sil.toFixed(2) + ').');
     }
 
@@ -821,21 +901,23 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
       description: 'The analysis follows Section 3.6: descriptive first, then inferential tests where the data allow them (chi-square, Kruskal–Wallis, Spearman), with cross-tabulation by age as a primary comparison. The sample is non-probability, so every test is corrected for many comparisons and read as evidence about the teens who answered, carried to Ilagan teens only with caution.',
       formula: 'See each table. Common to all: 95% Wilson interval; Holm step-down correction; χ² and Kruskal–Wallis with tie correction; Spearman ρ with a t-test; k-means with silhouette.',
       reading: 'The statistics functions are verified against scipy (tools/validate_stats.py). Subgroups under 10 are never reported.',
-      blocks: [T('Statistics at a glance', ['Statistic', 'Used for', 'Formula'], [
-        ['Percentage and Wilson 95% CI', 'Every frequency', 'p = k/n; [p + z²/2n ± z√(p(1−p)/n + z²/4n²)] / (1 + z²/n)'],
-        ['Mean, SD, median, percentile', 'Ratings and group size', 'x̄ = Σx/n; s = √(Σ(x−x̄)²/(n−1)); percentile by linear interpolation'],
-        ['Priority Gap Index', 'Needs', 'PGI = strong need and no good place ÷ all valid × 100'],
-        ['Chi-square test of independence', 'Choice by age band, sex, area', 'χ² = Σ(O−E)²/E; df = (r−1)(c−1)'],
-        ["Cramér's V", 'Effect size of χ²', 'V = √(χ² / (n·(min(r,c)−1)))'],
-        ['Chi-square goodness of fit', 'Preference among three spaces', 'χ² = Σ(O−E)²/E, E = n/3, df = 2'],
-        ['Kruskal–Wallis H', 'Ratings and group sizes by group', 'H = [12/(N(N+1)) Σ Rᵢ²/nᵢ − 3(N+1)] ÷ tie correction'],
-        ['Epsilon-squared', 'Effect size of H', 'ε² = H / ((N²−1)/(N+1))'],
-        ['Spearman rho', 'Need strength against age', 'ρ = Pearson correlation of ranks; t = ρ√((n−2)/(1−ρ²))'],
-        ['Holm correction', 'All families of tests', 'p(i)·(m−i+1), made non-decreasing'],
-        ['k-means and silhouette', 'Need segments', 'min Σ‖x−c‖²; s = (b−a)/max(a,b)'],
-      ], { fmt: ['text', 'text', 'text'], wide: true })],
+      blocks: [T('Statistics at a glance', ['Statistic', 'Used for', 'What it tells the study', 'Formula'], [
+        ['Percentage and Wilson 95% CI', 'Every frequency', 'How many teens chose something, and how sure that share is with a sample of this size', 'p = k/n; [p + z²/2n ± z√(p(1−p)/n + z²/4n²)] / (1 + z²/n)'],
+        ['Mean, SD, median, percentile', 'Ratings and group size', 'The typical rating and how much teens disagree; the group size that nooks and tables must fit', 'x̄ = Σx/n; s = √(Σ(x−x̄)²/(n−1)); percentile by linear interpolation'],
+        ['Priority Gap Index', 'Needs', 'Which needs are both strongly felt and unserved, so which spaces come first', 'PGI = strong need and no good place ÷ all valid × 100'],
+        ['Chi-square test of independence', 'Choice by age band, sex, area, residence', 'Whether a choice depends on the group, so whether the design should differ for that group', 'χ² = Σ(O−E)²/E; df = (r−1)(c−1)'],
+        ["Cramér's V", 'Effect size of χ²', 'How large that difference is, so a small difference is not overread', 'V = √(χ² / (n·(min(r,c)−1)))'],
+        ['Chi-square goodness of fit', 'Preference among three spaces', 'Whether teens really prefer one of three spaces or are split among them', 'χ² = Σ(O−E)²/E, E = n/3, df = 2'],
+        ['Kruskal–Wallis H', 'Ratings and group sizes by group', 'Whether groups rate a need, or gather in groups, differently', 'H = [12/(N(N+1)) Σ Rᵢ²/nᵢ − 3(N+1)] ÷ tie correction'],
+        ['Epsilon-squared', 'Effect size of H', 'How large that rating difference is', 'ε² = H / ((N²−1)/(N+1))'],
+        ['Spearman rho', 'Need strength against age', 'Whether a need grows or fades as teens get older, year by year', 'ρ = Pearson correlation of ranks; t = ρ√((n−2)/(1−ρ²))'],
+        ['Holm correction', 'All families of tests', 'Guards against false findings when many tests are run at once', 'p(i)·(m−i+1), made non-decreasing'],
+        ['k-means and silhouette', 'Need segments', 'Whether teens form distinct user types, and how clearly', 'min Σ‖x−c‖²; s = (b−a)/max(a,b)'],
+        ['Ilagan-only comparison', 'Key findings', 'Whether teens from outside Ilagan changed any finding the design rests on', 'Each finding recomputed for residents of the City of Ilagan (A2)'],
+      ], { fmt: ['text', 'text', 'text', 'text'], wide: true })],
     });
 
+    mods.forEach(m => { m.yields = YIELDS[m.id] || ''; });
     return { modules: mods, insights, flags, N, cl };
   }
 
@@ -963,7 +1045,8 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     let s = '<svg class="sc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(b.caption) + '">';
     for (let t = 0; t <= mx; t += 10) s += '<line x1="' + X(t) + '" y1="' + T + '" x2="' + X(t) + '" y2="' + (T + ph) + '" stroke="#e5e2d6"/><text x="' + X(t) + '" y="' + (T + ph + 16) + '" font-size="12" text-anchor="middle">' + t + '</text>';
     for (let t = 0; t <= my; t += 10) s += '<line x1="' + L + '" y1="' + Y(t) + '" x2="' + (L + pw) + '" y2="' + Y(t) + '" stroke="#e5e2d6"/><text x="' + (L - 7) + '" y="' + (Y(t) + 4) + '" font-size="12" text-anchor="end">' + t + '</text>';
-    s += '<line x1="' + X(b.vx) + '" y1="' + T + '" x2="' + X(b.vx) + '" y2="' + (T + ph) + '" stroke="#8a8f88" stroke-dasharray="5 4"/><line x1="' + L + '" y1="' + Y(b.vy) + '" x2="' + (L + pw) + '" y2="' + Y(b.vy) + '" stroke="#8a8f88" stroke-dasharray="5 4"/>';
+    if (isFinite(b.vx)) s += '<line x1="' + X(b.vx) + '" y1="' + T + '" x2="' + X(b.vx) + '" y2="' + (T + ph) + '" stroke="#8a8f88" stroke-dasharray="5 4"/>';   // median lines only when there is data
+    if (isFinite(b.vy)) s += '<line x1="' + L + '" y1="' + Y(b.vy) + '" x2="' + (L + pw) + '" y2="' + Y(b.vy) + '" stroke="#8a8f88" stroke-dasharray="5 4"/>';
     s += '<text x="' + (L + pw / 2) + '" y="' + (H - 10) + '" font-size="13" text-anchor="middle">' + esc(b.xl) + '</text><text x="14" y="' + (T + ph / 2) + '" font-size="13" text-anchor="middle" transform="rotate(-90 14 ' + (T + ph / 2) + ')">' + esc(b.yl) + '</text>';
     if (b.quad) { s += '<text x="' + (L + 6) + '" y="' + (T + ph - 6) + '" font-size="11" fill="#6a6f68">' + esc(b.quad[0]) + '</text><text x="' + (L + 6) + '" y="' + (T + 13) + '" font-size="11" fill="#6a6f68">' + esc(b.quad[1]) + '</text><text x="' + (L + pw - 6) + '" y="' + (T + ph - 6) + '" font-size="11" fill="#6a6f68" text-anchor="end">' + esc(b.quad[2]) + '</text><text x="' + (L + pw - 6) + '" y="' + (T + 13) + '" font-size="11" fill="#6a6f68" text-anchor="end">' + esc(b.quad[3]) + '</text>'; }
     const placed = [];
@@ -996,7 +1079,7 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     html += '<section class="card" id="m-insights"><h2>Key insights</h2><p class="rq">Computed from the current responses</p><ol class="insights">' + res.insights.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol><div class="tnote">Insights are computed automatically from the analyses below. Read each against its n and its caveats before using it in the thesis.</div></section>';
     res.modules.forEach((m, i) => {
       html += '<section class="card" id="m-' + m.id + '"><h2>' + (i + 1) + '. ' + esc(m.title) + '</h2><span class="rq">' + esc(m.rq) + '</span>'
-        + '<div class="facts"><div><b>Intent</b>' + esc(m.intent) + '</div><div><b>What it is</b>' + esc(m.description) + '</div><div class="formula"><b>Formula</b><span>' + esc(m.formula) + '</span></div><div class="formula"><b>How to read it</b>' + esc(m.reading) + '</div></div>'
+        + '<div class="facts"><div><b>Intent</b>' + esc(m.intent) + '</div><div><b>What it is</b>' + esc(m.description) + '</div>' + (m.yields ? '<div class="yields"><b>What it gives the study</b>' + esc(m.yields) + '</div>' : '') + '<div class="formula"><b>Formula</b><span>' + esc(m.formula) + '</span></div><div class="formula"><b>How to read it</b>' + esc(m.reading) + '</div></div>'
         + m.blocks.map(renderBlock).join('') + '</section>';
     });
     $('#content').innerHTML = html;
@@ -1121,8 +1204,8 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
       const name = ((mi + 1) + ' ' + m.title).replace(/[\[\]:*?\/\\]/g, '').slice(0, 31);
       const w = wb.addWorksheet(name); let widthsArr = [];
       const put = (row, bold) => { const r = w.addRow(row); if (bold) r.font = { bold: true, name: 'Times New Roman' }; return r; };
-      put([m.title], true).font = { bold: true, size: 14, name: 'Times New Roman' }; put(['Objective', m.rq]); put(['Intent', m.intent]); put(['What it is', m.description]); put(['Formula', m.formula]); put(['How to read it', m.reading]); put(['']);
-      for (let r = 2; r <= 6; r++) { w.mergeCells(r, 2, r, 9); w.getRow(r).alignment = { wrapText: true, vertical: 'top' }; w.getRow(r).height = Math.max(18, 15 * Math.ceil(String(w.getRow(r).getCell(2).value).length / 120)); w.getRow(r).getCell(1).font = { bold: true, name: 'Times New Roman' }; }
+      put([m.title], true).font = { bold: true, size: 14, name: 'Times New Roman' }; put(['Objective', m.rq]); put(['Intent', m.intent]); put(['What it is', m.description]); put(['What it gives the study', m.yields || '']); put(['Formula', m.formula]); put(['How to read it', m.reading]); put(['']);
+      for (let r = 2; r <= 7; r++) { w.mergeCells(r, 2, r, 9); w.getRow(r).alignment = { wrapText: true, vertical: 'top' }; w.getRow(r).height = Math.max(18, 15 * Math.ceil(String(w.getRow(r).getCell(2).value).length / 120)); w.getRow(r).getCell(1).font = { bold: true, name: 'Times New Roman' }; }
       m.blocks.forEach(b => {
         if (b.type === 'table') {
           tno++; put(['Table ' + tno + '. ' + b.caption], true); const hr = put(b.head); styleHead(hr);
