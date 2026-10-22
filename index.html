@@ -314,13 +314,16 @@ textarea{min-height:150px;resize:vertical}
 .gpanel .tile.hasimg{padding:6px 6px 10px;justify-content:flex-start}
 .tile .gimg{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;background:#e9eefc;margin-bottom:4px}
 .tile.sel .gimg{box-shadow:0 0 0 3px #fff}
-.tile.hasimg .cost{z-index:3;top:10px;right:10px;font-size:16px;font-weight:900;line-height:1;padding:4px 8px 4px 10px;border:2px solid #fff;color:#4a2a00;
-  background:linear-gradient(180deg,#fff27a,#ffc93c 55%,#f0a000);box-shadow:0 3px 0 #b66f00,0 5px 10px rgba(0,0,0,.35);text-shadow:0 1px 0 #fff6;letter-spacing:.5px;animation:priceGlow 2.4s ease-in-out infinite}
-.tile.hasimg .cost small{font-size:13px;font-weight:900;margin-left:3px}
+/* the price on a photo tile is a brass peso-style coin: ridged rim, inner ring, number on the face */
+.tile.hasimg .cost{z-index:3;top:8px;right:8px;width:42px;height:42px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;
+  background:repeating-conic-gradient(#a8780f 0 6deg,#ecc85e 6deg 12deg);box-shadow:0 3px 0 #7a5608,0 6px 12px rgba(0,0,0,.4);animation:priceGlow 2.4s ease-in-out infinite}
+.tile.hasimg .cost b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:18px;font-weight:900;line-height:1;color:#5a3d00;text-shadow:0 1px 0 #fff8;
+  background:radial-gradient(circle at 35% 30%,#fff4b8,#f2cb52 45%,#c8951e 100%);box-shadow:inset 0 0 0 2px #b8871a,inset 0 0 0 4px #f6da82,inset 0 -2px 4px rgba(90,61,0,.35)}
+.tile.hasimg .cost .emo{display:none}
 .tile.hasimg.sel .cost,.tile.hasimg.dim .cost{animation:none}
 @keyframes priceGlow{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 @media (prefers-reduced-motion:reduce){.tile.hasimg .cost{animation:none}}
-@media (max-width:600px){.tile.hasimg .cost{font-size:14px;top:8px;right:8px;padding:3px 7px 3px 8px}}
+@media (max-width:600px){.tile.hasimg .cost{width:36px;height:36px;top:7px;right:7px}.tile.hasimg .cost b{width:29px;height:29px;font-size:16px}}
 .tile.hasimg.sel:after{z-index:2;top:12px;left:12px;width:30px;height:30px;line-height:30px;border-radius:50%;background:var(--c);box-shadow:0 2px 0 rgba(0,0,0,.3)}
 @media (max-width:600px){.gpanel .shop.pics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gpanel .tile.hasimg{min-height:0;font-size:13.5px;padding:5px 5px 9px}}
 .gempty{margin-top:12px;border:3px dashed #1b1f4b40;border-radius:20px;padding:22px 12px;text-align:center;font-weight:800;color:#1b1f4b99}
@@ -820,7 +823,7 @@ function finRender(){
   if(finTab<0) panel=`<div class="gempty">☝️ ${U('tapGroup')}</div>`;
   else { const t=F.tiers[finTab], n=t.items.filter(i=>st.fin[i.id]).length;
     panel=`<div class="gpanel k${finTab}" style="--c:${tc[finTab]};--t:${tint[finTab]}"><div class="gtitle"><span>${gem[finTab]} ${U('grpSub'+finTab)}</span><span>${n} ${U('chosenHere')} · ${n*t.cost} 🪙</span></div>
-      <div class="shop${t.items.some(i=>i.img)?' pics':''}">${t.items.map(i=>`<button class="tile ${i.img?'hasimg ':''}${st.fin[i.id]?'sel':''} ${!st.fin[i.id]&&left<t.cost?'dim':''}" data-act="buy" data-id="${i.id}"><span class="cost">${t.cost}<span class="emo">🪙</span></span>${i.img?`<img class="gimg" src="${i.img}" alt="" loading="lazy">`:`<span class="tgrp">${gname(finTab)}</span><span class="em emo">${i.emoji}</span>`}<span>${IT(i)}</span></button>`).join('')}</div></div>`; }
+      <div class="shop${t.items.some(i=>i.img)?' pics':''}">${t.items.map(i=>`<button class="tile ${i.img?'hasimg ':''}${st.fin[i.id]?'sel':''} ${!st.fin[i.id]&&left<t.cost?'dim':''}" data-act="buy" data-id="${i.id}"><span class="cost"><b>${t.cost}</b><span class="emo">🪙</span></span>${i.img?`<img class="gimg" src="${i.img}" alt="" loading="lazy">`:`<span class="tgrp">${gname(finTab)}</span><span class="em emo">${i.emoji}</span>`}<span>${IT(i)}</span></button>`).join('')}</div></div>`; }
   $('#drawers').innerHTML=`<div class="caps">${caps}</div>${panel}`;
   let lot='', any=false;
   F.tiers.forEach((tr,k)=>{ const ps=tr.items.filter(i=>st.fin[i.id]); if(ps.length){ any=true; lot+=`<div class="lotlabel">${[U('bigSpaces'),U('rooms'),U('details')][k]}</div><div class="lotrow">${ps.map(i=>`<div class="piece t${k}" title="${esc(i.en)}"><span class="e emo">${i.emoji}</span><small>${IT(i)}</small></div>`).join('')}</div>`; } });
