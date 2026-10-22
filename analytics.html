@@ -7,26 +7,49 @@
 <title>KAMANG Research Analytics</title>
 <script src="analytics-config.js"></script>
 <style>
-:root{--ink:#1d1b26;--ink2:#4a4757;--paper:#ffffff;--bg:#f4f3f8;--brand:#3d2370;--brand-dark:#2c1854;--brand-soft:#ece6f7;--blue:#2a78d6;--blue-dark:#1c5cab;--blue-soft:#eaf2fc;--yellow:#eda100;--amber-text:#7a4f00;--purple:#8b2f8f;--orange:#c2410c;--line:#dcd9e4;--soft:#eeecf3;--radius:12px;
+/* KAMANG analytics: a dark "lab" frame with holographic accents around white instrument panels.
+   Data marks keep the validated colorblind-safe palette (blue, yellow, plum, deep orange; ordinal blue);
+   pink and the moving gradients are decoration only and never carry meaning. */
+:root{--ink:#1d1b26;--ink2:#4a4757;--paper:#ffffff;--deep:#0d0a1e;--deep2:#171331;
+  --brand:#3d2370;--brand-dark:#2c1854;--brand-soft:#ece6f7;
+  --blue:#2a78d6;--blue-dark:#1c5cab;--blue-soft:#eaf2fc;
+  --yellow:#eda100;--amber-text:#7a4f00;--purple:#8b2f8f;--orange:#c2410c;--pink:#d84fa6;
+  --holo:linear-gradient(110deg,#5b2bd6 0%,#b43fc9 26%,#d84fa6 42%,#2a78d6 66%,#f2b705 100%);
+  --holo-soft:linear-gradient(110deg,rgba(91,43,214,.14),rgba(216,79,166,.12),rgba(42,120,214,.14),rgba(242,183,5,.16));
+  --holo-ink:linear-gradient(100deg,#3d2370 0%,#7b2c8f 45%,#1c5cab 100%);
+  --holo-light:linear-gradient(100deg,#c3b1ff 0%,#ff9ad5 38%,#8cc3ff 70%,#ffd84d 100%);
+  --line:#e3e0ec;--soft:#eeecf3;--radius:18px;
   --font:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:var(--font);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.45}
+body{font-family:var(--font);color:var(--ink);font-size:15px;line-height:1.5;min-height:100vh;
+  background:radial-gradient(900px 600px at 8% -5%,rgba(123,77,255,.42),transparent 60%),radial-gradient(800px 560px at 96% 4%,rgba(216,79,166,.30),transparent 60%),
+    radial-gradient(900px 700px at 78% 96%,rgba(42,120,214,.34),transparent 62%),radial-gradient(700px 520px at 4% 92%,rgba(242,183,5,.20),transparent 60%),var(--deep);
+  background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 30%,#000 20%,transparent 75%)}
 button{font:inherit;color:inherit;cursor:pointer}
 input,select{font:inherit}
 .hidden{display:none!important}
+@keyframes holo{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+@keyframes sheen{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@keyframes pulse{50%{opacity:.35}}
+@keyframes flow{to{stroke-dashoffset:-34}}
 
 /* ---- login ---- */
-#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.lcard{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 40px rgba(29,27,38,.12);width:100%;max-width:430px;padding:30px 28px}
-.lcard h1{margin:0 0 4px;font-size:26px;color:var(--brand)}
+#login{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lcard{width:100%;max-width:450px;padding:32px 30px;border-radius:22px;border:2px solid transparent;
+  background:linear-gradient(rgba(255,255,255,.96),rgba(255,255,255,.96)) padding-box,var(--holo) border-box;box-shadow:0 20px 70px rgba(91,43,214,.45),0 0 0 1px rgba(255,255,255,.2)}
+.lcard h1{margin:0 0 6px;font-size:28px;letter-spacing:-.3px;background:var(--holo-ink);-webkit-background-clip:text;background-clip:text;color:transparent}
 .lcard p{margin:6px 0 16px;color:var(--ink2)}
 .field{margin:12px 0}
 .field label{display:block;font-weight:600;font-size:13px;margin-bottom:4px;color:var(--ink2)}
-.field input,.field select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:9px;background:#fff}
+.field input,.field select{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
 .field input:focus,.field select:focus{outline:3px solid #c9b8ec;border-color:var(--brand)}
-.btn{border:0;border-radius:9px;padding:10px 16px;font-weight:600;background:var(--brand);color:#fff}
-.btn:hover{background:var(--brand-dark)}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;color:#fff;background:linear-gradient(110deg,#3d2370,#6b2fa0 55%,#1c5cab);background-size:160% 100%;transition:background-position .4s,transform .15s,box-shadow .2s}
+.btn:hover{background-position:100% 0;box-shadow:0 6px 20px rgba(91,43,214,.35)}
+.btn:active{transform:translateY(1px)}
 .btn.ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
 .btn.ghost:hover{background:var(--brand-soft)}
 .btn.small{padding:6px 11px;font-size:13px}
@@ -40,109 +63,164 @@ input,select{font:inherit}
 .msg.ok:not(:empty)::before{content:"✓ "}
 .lfoot{margin-top:18px;font-size:12.5px;color:var(--ink2);border-top:1px solid var(--line);padding-top:12px}
 
-/* ---- top bar ---- */
-#top{position:sticky;top:0;z-index:20;background:var(--brand);color:#fff;display:flex;align-items:center;gap:12px;padding:9px 18px;flex-wrap:wrap}
-#top .brand{font-weight:700;font-size:17px;letter-spacing:.2px}
-#top .chip{background:rgba(255,255,255,.14);border-radius:999px;padding:4px 11px;font-size:13px}
+/* ---- top bar: moving holographic gradient ---- */
+#main-app{position:relative;z-index:1}
+#top{position:sticky;top:0;z-index:20;color:#fff;display:flex;align-items:center;gap:10px;padding:10px 18px;flex-wrap:wrap;
+  background:linear-gradient(rgba(13,10,30,.30),rgba(13,10,30,.30)),var(--holo);background-size:100% 100%,320% 100%;animation:holo 18s ease-in-out infinite alternate;
+  box-shadow:0 8px 30px rgba(13,10,30,.55)}
+#top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--holo-light);opacity:.9}
+#top .brand{font-weight:800;font-size:18px;letter-spacing:.3px;display:flex;align-items:center;gap:8px;text-shadow:0 1px 8px rgba(13,10,30,.5)}
+#top .brand::before{content:"";width:22px;height:22px;border-radius:7px;background:conic-gradient(from 200deg,#ffd84d,#ff9ad5,#c3b1ff,#8cc3ff,#ffd84d);box-shadow:0 0 14px rgba(255,216,77,.6)}
+#top .chip{background:rgba(13,10,30,.28);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 11px;font-size:13px;backdrop-filter:blur(6px)}
 #top .spacer{flex:1}
-#top .btn{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35)}
-#top .btn:hover{background:rgba(255,255,255,.28)}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ffd23f;margin-right:6px;animation:pulse 1.8s infinite}
-.dot.off{background:#b9b6c4;animation:none}
-@keyframes pulse{50%{opacity:.35}}
-#demobar{background:#fff3cd;color:#5c4400;padding:8px 18px;font-weight:600;text-align:center;border-bottom:2px solid #e2b93b}
+#top .btn{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(6px)}
+#top .btn:hover{background:rgba(255,255,255,.28);box-shadow:0 0 16px rgba(255,255,255,.25)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ffd23f;box-shadow:0 0 10px #ffd23f;margin-right:6px;animation:pulse 1.8s infinite}
+.dot.off{background:#b9b6c4;box-shadow:none;animation:none}
+#demobar{position:relative;z-index:1;background:linear-gradient(90deg,#ffe58a,#ffd23f,#ffe58a);color:#4a3300;padding:8px 18px;font-weight:600;text-align:center;border-bottom:2px solid #c98500}
 
 /* ---- layout ---- */
-#layout{display:flex;align-items:flex-start;max-width:1500px;margin:0 auto}
-#nav{position:sticky;top:52px;width:250px;flex:none;max-height:calc(100vh - 56px);overflow:auto;padding:14px 10px 30px 14px}
-#nav a{display:block;padding:7px 10px;border-radius:8px;color:var(--ink2);text-decoration:none;font-size:13.5px;line-height:1.3}
-#nav a:hover,#nav a.on{background:var(--brand-soft);color:var(--brand)}
-#nav h4{margin:14px 10px 4px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--amber-text)}
-#main{flex:1;min-width:0;padding:16px 18px 80px}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;box-shadow:0 1px 3px rgba(29,27,38,.06)}
-.card h2{margin:0 0 2px;font-size:20px;color:var(--brand)}
-.card .rq{display:inline-block;font-size:12px;font-weight:600;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:2px 10px;margin-bottom:8px}
-.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:10px 0 14px}
-.facts div{background:#faf9fc;border:1px solid var(--line);border-left:4px solid var(--yellow);border-radius:8px;padding:8px 11px;font-size:13.5px}
-.facts b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--amber-text);margin-bottom:2px}
+#layout{display:flex;align-items:flex-start;max-width:1520px;margin:0 auto}
+#nav{position:sticky;top:60px;width:262px;flex:none;max-height:calc(100vh - 64px);overflow:auto;padding:16px 10px 30px 14px}
+#nav a{display:block;padding:7px 11px;margin:2px 0;border-radius:10px;color:#d6cff0;text-decoration:none;font-size:13.5px;line-height:1.3;border:1px solid transparent;transition:background .2s,color .2s}
+#nav a:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.12)}
+#nav a.on{background:var(--holo);color:#fff}
+#nav h4{margin:14px 10px 6px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;background:var(--holo-light);-webkit-background-clip:text;background-clip:text;color:transparent}
+#main{flex:1;min-width:0;padding:18px 18px 80px}
+
+/* ---- KPI tiles: glass on the dark frame ---- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.kpi{position:relative;overflow:hidden;border-radius:16px;padding:14px 16px;color:#e9e4ff;border:1px solid transparent;
+  background:linear-gradient(rgba(24,19,52,.78),rgba(24,19,52,.78)) padding-box,var(--holo) border-box;box-shadow:0 10px 30px rgba(13,10,30,.45)}
+.kpi::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.16) 50%,transparent 65%);transform:translateX(-120%);pointer-events:none}
+.kpi:hover::after{animation:sheen 1.1s ease}
+.kpi b{display:block;font-size:30px;font-weight:800;letter-spacing:-.5px;background:var(--holo-light);-webkit-background-clip:text;background-clip:text;color:transparent}
+.kpi span{font-size:12.5px;color:#cfc8ea}
+.kbar{display:block;height:6px;margin-top:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+.kbar i{display:block;height:100%;border-radius:4px;background:var(--holo-light)}
+
+/* ---- cards: white instrument panels with a holographic edge ---- */
+.card{border-radius:var(--radius);padding:20px 22px;margin-bottom:20px;border:1.5px solid transparent;
+  background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,rgba(123,77,255,.65),rgba(216,79,166,.5),rgba(42,120,214,.6),rgba(242,183,5,.55)) border-box;
+  box-shadow:0 14px 44px rgba(13,10,30,.38)}
+.card h2{display:flex;align-items:center;gap:10px;margin:0 0 6px;font-size:21px;letter-spacing:-.2px;background:var(--holo-ink);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card h2 .num{flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;font-size:15px;color:#fff;-webkit-text-fill-color:#fff;background:var(--holo);box-shadow:0 4px 14px rgba(91,43,214,.35)}
+.card h2 .pnum{display:none}
+.card .rq{display:inline-block;font-size:12px;font-weight:600;color:var(--brand);border-radius:999px;padding:3px 11px;margin-bottom:8px;background:var(--holo-soft);border:1px solid #ddd3f3}
+.insights-card{background:linear-gradient(135deg,#fbfaff,#f4f8ff) padding-box,var(--holo) border-box}
+.insights{counter-reset:ins;list-style:none;padding:0;margin:10px 0}
+.insights li{counter-increment:ins;position:relative;margin:8px 0;padding:8px 12px 8px 46px;border-radius:12px;background:#fff;border:1px solid var(--line)}
+.insights li::before{content:counter(ins);position:absolute;left:10px;top:8px;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;background:var(--holo)}
+
+/* the five explanation boxes, each with its own colour */
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:10px 0 16px}
+.facts div{border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:9px 12px;font-size:13.5px;background:#faf9fd}
+.facts b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--brand);margin-bottom:2px}
+.facts .f-what{border-left-color:var(--blue);background:#f6f9fe}.facts .f-what b{color:var(--blue-dark)}
+.facts .yields{grid-column:1/-1;border:1.5px solid transparent;border-left-width:4px;background:linear-gradient(110deg,#f3efff,#eef5ff 55%,#fff8e3) padding-box,var(--holo) border-box}
+.facts .yields b{background:var(--holo-ink);-webkit-background-clip:text;background-clip:text;color:transparent}
 .facts .formula{grid-column:1/-1}
-.facts .yields{grid-column:1/-1;background:var(--blue-soft);border-left-color:var(--blue)}
-.facts .yields b{color:var(--blue-dark)}
-.facts .formula span{font-family:"Cambria Math",Cambria,"Times New Roman",serif;font-size:14px}
-.insights li{margin:5px 0}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.kpi{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.kpi b{display:block;font-size:24px;color:var(--brand)}
-.kpi span{font-size:12px;color:var(--ink2)}
+.facts .f-formula{background:linear-gradient(135deg,#171331,#231b47);color:#ece7ff;border:1px solid #3b2f6e;border-left:4px solid #8cc3ff}
+.facts .f-formula b{color:#ffd84d}
+.facts .formula span{font-family:"Cambria Math",Cambria,"Times New Roman",serif;font-size:14.5px}
+.facts .f-read{border-left-color:var(--yellow);background:#fffaf0}.facts .f-read b{color:var(--amber-text)}
 
 /* ---- tables ---- */
-.tcap{font-weight:700;margin:16px 0 5px;font-size:14px}
-.twrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.tcap{font-weight:700;margin:18px 0 6px;font-size:14px;color:var(--brand)}
+.twrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:13px}
-th{background:var(--brand);color:#fff;text-align:left;padding:6px 9px;font-weight:600;white-space:nowrap;position:sticky;top:0}
+th{background:linear-gradient(90deg,#3d2370,#5e2c94 50%,#1c5cab);color:#fff;text-align:left;padding:7px 9px;font-weight:600;white-space:nowrap;position:sticky;top:0}
 td{padding:5px 9px;border-top:1px solid var(--line);vertical-align:top}
 td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 tr:nth-child(even) td{background:#f8f7fb}
+tbody tr:hover td{background:#f0ecfb}
 td.txt{min-width:140px}
 .wide td.txt{min-width:260px}
 .barcell{min-width:90px}
 .mini{height:9px;background:var(--soft);border-radius:5px;overflow:hidden;min-width:80px}
 .mini i{display:block;height:100%;background:var(--blue)}
-.tnote{font-size:12.5px;color:var(--ink2);margin:5px 2px 0}
-details.block>summary{cursor:pointer;font-weight:700;font-size:14px;margin:14px 0 5px;color:var(--ink)}
-details.block>summary::marker{color:var(--amber-text)}
+.tnote{font-size:12.5px;color:var(--ink2);margin:6px 2px 0}
+details.block{border:1px solid var(--line);border-radius:12px;padding:2px 12px 10px;margin:12px 0;background:#fcfbff}
+details.block>summary{cursor:pointer;font-weight:700;font-size:14px;margin:8px 0 5px;color:var(--brand)}
+details.block>summary::marker{color:var(--pink)}
 
-/* ---- bars ---- */
+/* ---- bars, stacks, dots, effects ---- */
 .bars{margin:6px 0 4px}
-.brow{display:grid;grid-template-columns:minmax(120px,32%) 1fr 70px;gap:10px;align-items:center;margin:5px 0;font-size:13px}
+.brow{display:grid;grid-template-columns:minmax(120px,32%) 1fr 74px;gap:10px;align-items:center;margin:6px 0;font-size:13px}
 .brow .lab{overflow-wrap:anywhere}
-.track{position:relative;height:16px;background:var(--soft);border-radius:4px}
-.fill{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:4px}
+.track{position:relative;height:16px;background:var(--soft);border-radius:5px}
+.fill{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:5px;box-shadow:0 0 10px rgba(42,120,214,.35)}
 .whisk{position:absolute;top:50%;height:2px;background:var(--ink);transform:translateY(-50%)}
 .whisk::before,.whisk::after{content:"";position:absolute;top:-4px;width:2px;height:10px;background:var(--ink)}
 .whisk::before{left:0}.whisk::after{right:0}
 .brow .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
-.stackrow{display:grid;grid-template-columns:minmax(150px,38%) 1fr;gap:10px;align-items:center;margin:6px 0;font-size:12.5px}
-.stk{display:flex;gap:2px;height:22px;border-radius:5px;overflow:hidden;background:var(--soft)}
-.stk i{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-style:normal;min-width:0;overflow:hidden}
+.stackrow{display:grid;grid-template-columns:minmax(150px,38%) 1fr;gap:10px;align-items:center;margin:7px 0;font-size:12.5px}
+.stk{display:flex;gap:2px;height:22px;border-radius:6px;overflow:hidden;background:var(--soft)}
+.stk i{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;font-style:normal;min-width:0;overflow:hidden}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;margin:4px 0 8px}
 .legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;background:var(--c);vertical-align:-1px}
-svg.sc{width:100%;height:auto;max-width:760px;display:block;margin:6px 0;background:#fcfcfe;border:1px solid var(--line);border-radius:8px}
-svg.sc text{font-family:"Times New Roman",Times,serif}
+.legend span.star::before,.legend span.zl::before{display:none}
+.star{color:var(--amber-text);font-weight:700}
+.dotplot{margin:6px 0}
+.drow{display:grid;grid-template-columns:minmax(140px,34%) 1fr;gap:12px;align-items:center;margin:5px 0;font-size:13px}
+.dtrack{position:relative;height:22px;border-radius:11px;background:linear-gradient(90deg,#f1eefa,#eef4fd)}
+.dspan{position:absolute;top:50%;height:4px;margin-top:-2px;border-radius:2px;background:#b8acdf}
+.dot2{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(13,10,30,.35)}
+.drow.axis .dtrack{background:none;height:16px}
+.ticks span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--ink2)}
+.etrack{height:18px;overflow:hidden}
+.ez{position:absolute;top:0;bottom:0;background:#f4f2f9}.ez.z1{background:#e9e4f6}.ez.z2{background:#ddd5f1}.ez.z3{background:#cfc3ec}
+.etrack .fill{background:var(--brand);box-shadow:none;height:8px;top:5px;border-radius:4px}
+.zl{padding:1px 8px;border-radius:6px;background:#f4f2f9}.zl.z1{background:#e9e4f6}.zl.z2{background:#ddd5f1}.zl.z3{background:#cfc3ec}
+svg.sc{width:100%;height:auto;max-width:780px;display:block;margin:8px 0;background:#fcfcfe;border:1px solid var(--line);border-radius:12px}
+svg.sc.flow{max-width:960px;background:radial-gradient(ellipse at 50% 0%,#f6f2ff,#fcfcfe 70%)}
+svg.sc text{font-family:var(--font)}
+.fnode rect{filter:drop-shadow(0 4px 8px rgba(61,35,112,.28))}
+.flowdash{stroke:#fff;stroke-width:2.4;stroke-dasharray:3 14;stroke-linecap:round;opacity:.95;animation:flow 1.6s linear infinite}
+#tip{position:fixed;z-index:80;pointer-events:none;max-width:340px;padding:7px 10px;border-radius:10px;font-size:12.5px;color:#fff;opacity:0;transition:opacity .12s;
+  background:linear-gradient(rgba(23,19,49,.94),rgba(23,19,49,.94)) padding-box,var(--holo) border-box;border:1px solid transparent;box-shadow:0 8px 24px rgba(13,10,30,.45)}
+#tip.on{opacity:1}
 
 /* ---- dialogs ---- */
-.modal{position:fixed;inset:0;background:rgba(29,27,38,.5);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:30px 14px;overflow:auto}
-.mbox{background:#fff;border-radius:14px;width:100%;max-width:640px;padding:20px 22px;box-shadow:0 10px 50px rgba(0,0,0,.35)}
+.modal{position:fixed;inset:0;background:rgba(13,10,30,.62);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:30px 14px;overflow:auto}
+.mbox{width:100%;max-width:660px;padding:22px 24px;border-radius:18px;border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--holo) border-box;box-shadow:0 20px 60px rgba(0,0,0,.45)}
 .mbox h3{margin:0 0 8px;color:var(--brand)}
 .mrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .mrow .field{flex:1;min-width:150px;margin:6px 0}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:9px;z-index:60;font-size:14px;max-width:90vw}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);color:#fff;padding:10px 16px;border-radius:12px;z-index:60;font-size:14px;max-width:90vw;
+  background:linear-gradient(var(--deep2),var(--deep2)) padding-box,var(--holo) border-box;border:1px solid transparent;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 
-@media(max-width:900px){#top{position:static;padding:8px 12px;gap:8px}#top .brand{width:100%}#top .btn{padding:5px 10px;font-size:13px}#layout{display:block}#nav{position:static;width:auto;max-height:none;display:flex;gap:6px;overflow-x:auto;padding:8px 12px}#nav h4{display:none}#nav a{white-space:nowrap;background:var(--paper);border:1px solid var(--line)}.facts{grid-template-columns:1fr}.brow{grid-template-columns:1fr 60px}.brow .lab{grid-column:1/-1}.stackrow{grid-template-columns:1fr}}
+@media(max-width:900px){#top{position:static;padding:8px 12px;gap:8px}#top .brand{width:100%}#top .btn{padding:5px 10px;font-size:13px}#layout{display:block}#nav{position:static;width:auto;max-height:none;display:flex;gap:6px;overflow-x:auto;padding:8px 12px}#nav h4{display:none}#nav a{white-space:nowrap;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}#main{padding:12px 10px 60px}.card{padding:16px 14px}.facts{grid-template-columns:1fr}.brow{grid-template-columns:1fr 64px}.brow .lab{grid-column:1/-1}.stackrow,.drow{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#top{animation:none}.flowdash{animation:none;display:none}.dot{animation:none}.kpi:hover::after{animation:none}}
 
-/* ---- print: the results summary as a thesis-ready PDF ---- */
+/* ---- print: the results summary as a thesis-ready PDF (plain, black and white) ---- */
 @media print{
   @page{size:Letter;margin:0.8in 0.75in}
-  body{background:#fff;color:#000;font-family:"Times New Roman",Times,serif;font-size:10.5pt}
-  #top,#nav,#login,.noprint,#demobar .noprint{display:none!important}
+  body{background:#fff!important;color:#000;font-family:"Times New Roman",Times,serif;font-size:10.5pt}
+  body::before{display:none}
+  #top,#nav,#login,.noprint,#demobar,#tip,.flowdash{display:none!important}
   #layout{display:block}#main{padding:0}
-  .card{border:0;box-shadow:none;padding:0;margin:0 0 14pt;break-inside:auto}
-  .card h2{font-size:14pt;color:#000;border-bottom:1.5pt solid #000;padding-bottom:3pt;break-after:avoid}
+  .card,.insights-card{border:0;box-shadow:none;padding:0;margin:0 0 14pt;break-inside:auto;background:#fff!important}
+  .card h2{display:block;font-size:14pt;color:#000;-webkit-text-fill-color:#000;background:none!important;border-bottom:1.5pt solid #000;padding-bottom:3pt;break-after:avoid}
+  .card h2 .num{display:none}.card h2 .pnum{display:inline}
   .card .rq{background:none;color:#000;border:1pt solid #000}
-  .facts div{background:none;border:0;border-left:2pt solid #000;border-radius:0}
-  .facts b{color:#000}
-  .facts .yields{background:none;border-left:2pt solid #000}.facts .yields b{color:#000}
-  th{background:#fff;color:#000;border-top:1.2pt solid #000;border-bottom:1.2pt solid #000;position:static}
+  .insights li{border:0;padding:2pt 0 2pt 22pt;background:none}.insights li::before{color:#000;background:none;border:0.6pt solid #000;width:15pt;height:15pt;font-size:9pt;top:2pt;left:0}
+  .facts div,.facts .f-formula,.facts .yields,.facts .f-what,.facts .f-read{background:none!important;color:#000;border:0;border-left:2pt solid #000;border-radius:0}
+  .facts b,.facts .yields b,.facts .f-formula b,.facts .f-what b,.facts .f-read b{color:#000;-webkit-text-fill-color:#000;background:none}
+  .tcap{color:#000}
+  th{background:#fff!important;color:#000;border-top:1.2pt solid #000;border-bottom:1.2pt solid #000;position:static}
   td{border-top:0.4pt solid #888}
-  tr:nth-child(even) td{background:#fff}
+  tr:nth-child(even) td,tbody tr:hover td{background:#fff}
   tr{break-inside:avoid}
   .twrap{border:0;overflow:visible}
+  details.block{border:0;padding:0;background:none}
   table{font-size:8.6pt}
   .tcap{break-after:avoid}
-  details.block>summary{font-weight:700}
-  .track,.mini,.stk{border:0.5pt solid #666;background:#fff!important}
-  .fill,.mini i{background:#555!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .stk i{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  details.block>summary{font-weight:700;color:#000}
+  .track,.mini,.stk,.dtrack{border:0.5pt solid #666;background:#fff!important}
+  .fill,.mini i{background:#555!important;box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .stk i,.dot2,.ez,svg.sc{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  svg.sc{border:0.5pt solid #999;break-inside:avoid}
   .printhead{display:block!important}
   h2,.tcap{break-after:avoid}
 }
@@ -275,6 +353,18 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     const corr = 1 - tie / (N * N * N - N); if (corr <= 0) return { H: 0, df: groups.length - 1, p: 1, eps2: 0, N, meanRanks };
     H /= corr; const df = groups.length - 1;
     return { H, df, p: S.chi2sf(H, df), eps2: Math.max(0, H / ((N * N - 1) / (N + 1))), N, meanRanks };
+  };
+  S.dunn = groups => {                            // Dunn's pairwise test after Kruskal-Wallis (tie-corrected), Holm across the pairs
+    const all = [].concat(...groups), N = all.length; if (N < 3) return [];
+    const rk = S.rank(all), mr = []; let pos = 0;
+    groups.forEach(g => { mr.push(g.length ? S.sum(rk.slice(pos, pos + g.length)) / g.length : NaN); pos += g.length; });
+    const counts = {}; all.forEach(v => counts[v] = (counts[v] || 0) + 1); let tie = 0; Object.values(counts).forEach(c => tie += c * c * c - c);
+    const s2 = N * (N + 1) / 12 - tie / (12 * (N - 1)), out = [];
+    for (let i = 0; i < groups.length; i++) for (let j = i + 1; j < groups.length; j++) {
+      const ni = groups[i].length, nj = groups[j].length; if (!ni || !nj || s2 <= 0) continue;
+      const z = (mr[i] - mr[j]) / Math.sqrt(s2 * (1 / ni + 1 / nj)); out.push({ i, j, z, p: S.normsf2(z), mi: mr[i], mj: mr[j] });
+    }
+    const adj = S.holm(out.map(o => o.p)); out.forEach((o, k) => o.adj = adj[k]); return out;
   };
   S.pearson = (x, y) => { const n = x.length; if (n < 3) return NaN; const mx = S.mean(x), my = S.mean(y); let sxy = 0, sxx = 0, syy = 0; for (let i = 0; i < n; i++) { sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) * (x[i] - mx); syy += (y[i] - my) * (y[i] - my); } return sxy / Math.sqrt(sxx * syy); };
   S.spearman = (x, y) => {                        // rho with a two-sided t-test p
@@ -426,6 +516,11 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
   E.stack = (caption, series, items, o) => Object.assign({ type: 'stack', caption, series, items }, o || {});
   E.note = (html) => ({ type: 'note', html });
   E.scatter = (caption, pts, o) => Object.assign({ type: 'scatter', caption, pts }, o || {});
+  E.flow = (caption, cols, edges, o) => Object.assign({ type: 'flow', caption, cols, edges }, o || {});      // cols: [[{id, t, v, s, tone}]], edges: [[from, to, dashed]]
+  E.hist = (caption, bins, o) => Object.assign({ type: 'hist', caption, bins }, o || {});                   // bins: [{x0, x1, n}], o.marks: [{x, label}]
+  E.line = (caption, pts, o) => Object.assign({ type: 'line', caption, pts }, o || {});                     // pts: [{x: label, y}], o.target
+  E.dots = (caption, series, rows, o) => Object.assign({ type: 'dots', caption, series, rows }, o || {});   // rows: [{label, vals: [..]}]
+  E.effects = (caption, items, o) => Object.assign({ type: 'effects', caption, items }, o || {});           // items: [{label, v, sig}], o.bands: [small, medium, large]
 
   E.fmt = (v, f) => {
     if (v === null || v === undefined || (typeof v === 'number' && !isFinite(v))) return '–';
@@ -491,6 +586,18 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
       const last = valid.reduce((m, r) => (r.submitted && (!m || r.submitted > m) ? r.submitted : m), null);
       const stage = ['A', 1, 2, 3].map(k => { const v = valid.map(r => r.secs[k]).filter(x => x !== undefined); return v.length ? S.median(v) : NaN; });
       const nb = bands.map(b => b.length);
+      const rem = [['Incomplete', c.incomplete], ['Duplicate', c.duplicate], ['Too fast', c.fast], ['Same answer throughout', c.straight]];
+      const flowB = E.flow('How the responses flow: received, cleaned, valid, and split by age band',
+        [[{ id: 'in', t: 'Received', v: String(D.N), s: 'all submissions', tone: 0 }],
+          rem.map((x, i) => ({ id: 'r' + i, t: 'Removed: ' + x[0], v: String(x[1]), tone: 3 })).concat([{ id: 'ok', t: 'Valid', v: String(N), s: (100 * N / 50).toFixed(0) + '% of the target of 50', tone: 1 }]),
+          E.ageNames.map((nm, i) => ({ id: 'b' + i, t: 'Age ' + nm, v: String(nb[i]), s: N ? (100 * nb[i] / N).toFixed(0) + '% of valid' : '', tone: 2 }))],
+        rem.map((x, i) => ['in', 'r' + i, true]).concat([['in', 'ok']], E.ageNames.map((nm, i) => ['ok', 'b' + i])));
+      const allMin = D.R.map(r => r.totalSecs).filter(x => x !== undefined).map(x => x / 60);
+      const topMin = Math.max(10, Math.min(30, Math.ceil(Math.max(0, ...allMin))));
+      const bins = []; for (let m = 0; m < topMin; m++) bins.push({ x0: m, x1: m + 1, n: allMin.filter(t => t >= m && (m === topMin - 1 || t < m + 1)).length, label: m === topMin - 1 ? m + '+ min' : m + '–' + (m + 1) + ' min' });
+      const histB = E.hist('Time to finish, all responses received (minutes)', bins, { xl: 'Minutes to finish', yl: 'Responses',
+        marks: [isFinite(cl.threshold) && allMin.length ? { x: cl.threshold / 60, label: 'Too-fast cut-off' } : null, cl.medianSecs ? { x: cl.medianSecs / 60, label: 'Median' } : null].filter(Boolean) });
+      let cum = 0; const lineB = E.line('Valid responses collected so far, against the target of 50', days.map(d => ({ x: d.slice(5), y: (cum += byDay[d]) })), { target: 50, yl: 'Valid responses' });
       add({
         id: 'quality', title: 'Collection status and data quality', rq: 'All objectives',
         intent: 'Show how many responses are in, whether the sample meets its targets, and how many were removed by the stated cleaning rules.',
@@ -501,6 +608,7 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
           T('Collection status', ['Measure', 'Value'], [['Responses received', D.N], ['Removed: incomplete', c.incomplete], ['Removed: duplicate', c.duplicate], ['Removed: finished too fast', c.fast],
             ['Removed: same answer to every scaled item', c.straight], ['Valid responses used in the analyses', N], ['Target (valid)', 50], ['Progress to target', 100 * N / 50],
             ['Last response received', last ? last.toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : '–']], { fmt: ['text', 'x'], fmtRows: { 7: 'pct' } }),
+          flowB, lineB, histB,
           B('Progress to the sample target, and the age mix', [{ label: 'All valid responses (target 50)', value: Math.min(100, 100 * N / 50), text: N + ' of 50' }].concat(E.ageNames.map((nm, i) => ({ label: 'Age ' + nm + ', share of valid responses', value: E.pct(nb[i], N), text: nb[i] + ' (' + (N ? (100 * nb[i] / N).toFixed(0) : 0) + '%)' }))), { max: 100, unit: '%' }),
           T('Time to complete (valid responses)', ['Measure', 'Seconds', 'Minutes'], [['Median', S.median(tms), S.median(tms) / 60], ['25th percentile', S.percentile(tms, 25), S.percentile(tms, 25) / 60], ['75th percentile', S.percentile(tms, 75), S.percentile(tms, 75) / 60],
             ['Mean', S.mean(tms), S.mean(tms) / 60], ['Shortest', Math.min(...tms), Math.min(...tms) / 60], ['Longest', Math.max(...tms), Math.max(...tms) / 60]], { fmt: ['text', 'n', 'd1'] }),
@@ -522,6 +630,7 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
         const ages = valid.map(r => r.ageYears).filter(x => x !== undefined);
         if (ages.length) {
           const ar = E.single(D, valid, 'A0');
+          blocks.push(B('Respondents by age in years', ar.counts.map((k, i) => ({ label: 'Age ' + (10 + i), value: E.pct(k, ar.n), text: k + ' (' + E.pct(k, ar.n).toFixed(0) + '%)' })), { max: Math.max(10, Math.ceil(Math.max(...ar.counts.map(k => E.pct(k, ar.n) || 0)) / 5) * 5), unit: '%' }));
           blocks.push(T('How old are you? Age in years (A0), with mean, median and SD', distHead, rows(ar, { sort: false }), { fmt: distFmt, note: 'Mean ' + S.mean(ages).toFixed(1) + ' years, median ' + S.median(ages).toFixed(1) + ', SD ' + S.sd(ages).toFixed(2) + ', range ' + Math.min(...ages) + '–' + Math.max(...ages) + ' (n = ' + ages.length + ').' }));
         }
       }
@@ -552,14 +661,32 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
       const ageKW = need.map(r => S.kruskal(bands.map(b => b.map(x => x.a[r.id]).filter(x => x !== undefined))));
       const adj = S.holm(ageKW.map(k => (k ? k.p : NaN)));
       const medS = S.median(needStats.map(s => s.strongPct)), medU = S.median(needStats.filter(s => isFinite(s.poorPct)).map(s => s.poorPct));
+      const scale = (cb.scales && cb.scales.need) ? cb.scales.need.map(o => o[0]) : ['0', '1', '2', '3', '4'];
+      const ratingB = ST('How strongly teens feel each need: share of each rating, from 0 (not at all) to 4 (very much)', scale,
+        byStrong.map(s => { const v = valid.map(x => x.a[s.id]).filter(x => x !== undefined); return { label: E.short(s.label, 60), n: v.length, segs: scale.map((_, k) => E.pct(v.filter(x => x === k).length, v.length)) }; }),
+        { ramp: true });
+      const bandMeans = need.map(r => bands.map(b => { const v = b.map(x => x.a[r.id]).filter(x => x !== undefined); return v.length >= MIN_N ? S.mean(v) : NaN; }));
+      const dotsB = E.dots('Mean need strength by age band (0 to 4): where the dots spread apart, the age bands differ', E.ageNames.map(n => 'Age ' + n),
+        need.map((r, i) => ({ label: E.short(r.q[0], 52), vals: bandMeans[i], sig: adj[i] < 0.05 })), { min: 0, max: 4 });
+      const dunnRows = [];
+      need.forEach((r, i) => {
+        if (!(adj[i] < 0.05)) return;
+        S.dunn(bands.map(b => b.map(x => x.a[r.id]).filter(x => x !== undefined))).forEach(d => {
+          dunnRows.push([E.short(r.q[0], 60), E.ageNames[d.i] + ' vs ' + E.ageNames[d.j], d.adj < 0.05 ? 'Higher in ' + E.ageNames[d.mi > d.mj ? d.i : d.j] : 'No clear difference', d.z, d.p, d.adj]);
+        });
+      });
+      const dunnB = dunnRows.length
+        ? T('Which age bands differ (Dunn’s post-hoc test, for the needs that differ by age)', ['Need', 'Pair', 'Result', 'z', 'p', 'Holm p (pairs)'], dunnRows, { fmt: ['text', 'text', 'text', 'd2', 'p', 'p'], note: 'Run only where the Kruskal–Wallis test stays below .05 after the Holm correction. The Holm correction is repeated across the three pairs of each need.' })
+        : E.note('No need differs between the age bands after the Holm correction, so no post-hoc comparison of pairs is needed.');
       add({
         id: 'needs', title: 'Needs and the places that exist for them', rq: 'RQ2 / Objective 2',
         intent: 'Find which needs are strongest and where a strong need has no good place, so the space program starts with the largest gaps.',
         description: 'Each of the ' + need.length + ' needs is rated from 0 (not at all) to 4 (very much). Teens who rate a need Quite a lot or Very much (3–4) tick those of their strong needs that have no good place near them now. The Priority Gap Index counts teens who feel the need strongly and have no good place.',
-        formula: 'Strong need % = (ratings 3–4) ÷ (answered) × 100.  Unmet share = (strong and ticked “no good place”) ÷ (strong).  Priority Gap Index (PGI) = (strong and no good place) ÷ (all valid respondents) × 100.  Mean and SD on the 0–4 scale.',
+        formula: 'Strong need % = (ratings 3–4) ÷ (answered) × 100.  Unmet share = (strong and ticked “no good place”) ÷ (strong).  Priority Gap Index (PGI) = (strong and no good place) ÷ (all valid respondents) × 100.  Mean and SD on the 0–4 scale.  Age bands: Kruskal–Wallis, then Dunn’s z = (R̄ᵢ − R̄ⱼ) ÷ √([N(N+1)/12 − Σ(t³−t)/(12(N−1))] × (1/nᵢ + 1/nⱼ)) for each pair.',
         reading: 'Rank by PGI: the top needs are both widely felt and poorly served. Needs high in strength but low in unmet share already have a place nearby; those with a high unmet share are the gaps the center must fill.',
         blocks: [
           B('Priority Gap Index by need (strong need and no good place), % of valid respondents, 95% CI', byPgi.map(s => ({ label: E.short(s.label, 52), value: s.pgi, lo: s.pgiCI[0], hi: s.pgiCI[1], text: s.pgi.toFixed(1) + '%' })), { max: 100, unit: '%' }),
+          ratingB,
           T('Needs: strength, provision and priority', ['Need', 'n', 'Mean (0–4)', 'SD', 'Strong %', 'CI low', 'CI high', 'Rank (strong)', 'Strong n', 'No good place %', 'PGI %', 'Rank (PGI)'],
             needStats.map(s => [s.label, s.n, s.mean, s.sd, s.strongPct, s.ci[0], s.ci[1], s.rankStrong, s.strongN, s.poorPct, s.pgi, s.rankPgi]),
             { fmt: ['text', 'n', 'd2', 'd2', 'pct', 'pct', 'pct', 'n', 'n', 'pct', 'pct', 'n'], note: '“No good place” is the share of the respondents who rated that need Quite a lot or Very much.' }),
@@ -567,6 +694,7 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
           T('Need strength by age band (mean 0–4) with Kruskal–Wallis test', ['Need', '10–13', '14–16', '17–19', 'H', 'p', 'Holm p', 'ε²'],
             need.map((r, i) => [r.q[0]].concat(bands.map(b => { const v = b.map(x => x.a[r.id]).filter(x => x !== undefined); return v.length >= MIN_N ? S.mean(v) : NaN; }), [ageKW[i] ? ageKW[i].H : NaN, ageKW[i] ? ageKW[i].p : NaN, adj[i], ageKW[i] ? ageKW[i].eps2 : NaN])),
             { fmt: ['text', 'd2', 'd2', 'd2', 'd2', 'p', 'p', 'd3'], note: 'Inferential test (Kruskal–Wallis). Holm adjusts for the ' + need.length + ' tests. The sample is non-probability, so a significant difference describes the teens who answered and is carried to Ilagan teens only with caution. ε² is the effect size (0.01 small, 0.06 medium, 0.14 large).' }),
+          dotsB, dunnB,
           ...(function () {
             const ok = valid.filter(r => r.ageYears !== undefined); if (ok.length < 20) return [];
             const sp = need.map(r => { const pr = ok.filter(x => x.a[r.id] !== undefined); return S.spearman(pr.map(x => x.ageYears), pr.map(x => x.a[r.id])); }); const spAdj = S.holm(sp.map(x => x.p));
@@ -686,7 +814,9 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
       game = { per, gn };
       const names = ['Big spaces (4 coins each)', 'Rooms (2 coins each)', 'Details (1 coin each)'];
       const blocks = [T('Coin game: who played', ['Measure', 'Value'], [['Played the coin game', gn], ['Skipped it', valid.length - gn], ['Mean coins spent', S.mean(players.map(r => r.gameCoins).filter(x => x !== undefined))]], { fmt: ['text', 'x'] }),
-        T('Coins spent on each tier (mean per player) with age-band comparison', ['Tier', 'Mean coins', '10–13', '14–16', '17–19', 'H', 'p', 'Holm p'], names.map((nm, t) => [nm, tierTot[t]].concat(tierPer[t], [tierKW[t] ? tierKW[t].H : NaN, tierKW[t] ? tierKW[t].p : NaN, tierAdj[t]])), { fmt: ['text', 'd1', 'd1', 'd1', 'd1', 'd2', 'p', 'p'] })];
+        T('Coins spent on each tier (mean per player) with age-band comparison', ['Tier', 'Mean coins', '10–13', '14–16', '17–19', 'H', 'p', 'Holm p'], names.map((nm, t) => [nm, tierTot[t]].concat(tierPer[t], [tierKW[t] ? tierKW[t].H : NaN, tierKW[t] ? tierKW[t].p : NaN, tierAdj[t]])), { fmt: ['text', 'd1', 'd1', 'd1', 'd1', 'd2', 'p', 'p'] }),
+        ST('How the coins are split across the three tiers, % of the coins spent', ['Big spaces', 'Rooms', 'Details'],
+          [{ label: 'All players', n: gn, segs: (s => [0, 1, 2].map(t => 100 * tierTot[t] / s))(S.sum(tierTot)) }].concat(E.ageNames.map((nm, b) => ({ label: 'Age ' + nm, n: bands[b].filter(r => !r.gameSkipped && Object.keys(r.g).length).length, segs: (s => [0, 1, 2].map(t => 100 * tierPer[t][b] / s))(tierPer[0][b] + tierPer[1][b] + tierPer[2][b]) })).filter(x => x.segs.every(isFinite))))];
       [0, 1, 2].forEach(t => {
         const sub = per.filter(p => p.tier === t).sort((a, b) => b.pct - a.pct);
         blocks.push(B(names[t] + ': % of players who bought it, 95% CI', sub.slice(0, 14).map(p => ({ label: E.short(p.name, 50), value: p.pct, lo: p.ci[0], hi: p.ci[1], text: p.pct.toFixed(1) + '%' })), { max: Math.max(10, Math.ceil(Math.max(...sub.map(p => p.ci[1]), 10) / 10) * 10), unit: '%' }));
@@ -706,39 +836,59 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     // ---------------------------------------------------------------------------------------------- 11 cross-tabulations
     {
       const rowsT = [];
-      const push = (id, label, group, test, stat, df, p, eff, extra) => { rowsT.push({ id, label, group, test, stat, df, p, eff, extra }); holmAll.push(p); };
+      // each test keeps what produced it (detail), so the post-hoc step can say where a difference lies
+      const push = (id, label, group, test, stat, df, p, eff, extra, detail) => { rowsT.push({ id, label, group, test, stat, df, p, eff, extra, detail }); holmAll.push(p); };
+      const optLabels = i => i.kind === 'triple' ? ['Space A', 'Space B', 'Space C', 'All are fine'] : i.opts.map(o => E.short(o[0], 40));
+      const bandVals = id => bands.map(b => b.map(r => r.a[id]).filter(x => x !== undefined));
       const singles = cb.items.filter(i => ['single', 'triple'].includes(i.kind) && i.role !== 'profile' && !i.dyn);
       singles.forEach(i => {
         const tab = bands.map(b => { const t = new Array(i.kind === 'triple' ? 4 : i.opts.length).fill(0); b.forEach(r => { const v = r.a[i.id]; if (v !== undefined && v < t.length) t[v]++; }); return t; });
-        if (['E5'].includes(i.id)) { const kw = S.kruskal(bands.map(b => b.map(r => r.a[i.id]).filter(x => x !== undefined))); if (kw) push(i.id, E.qtext(i), 'Age band', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²'); }
-        else { const cs = S.chiSquare(tab); if (cs) push(i.id, E.qtext(i), 'Age band', 'χ² independence', cs.chi2, cs.df, cs.p, cs.V, "Cramér's V"); }
+        if (['E5'].includes(i.id)) { const g = bandVals(i.id), kw = S.kruskal(g); if (kw) push(i.id, E.qtext(i), 'Age band', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²', { kind: 'kw', groups: g, names: E.ageNames }); }
+        else { const cs = S.chiSquare(tab); if (cs) push(i.id, E.qtext(i), 'Age band', 'χ² independence', cs.chi2, cs.df, cs.p, cs.V, "Cramér's V", { kind: 'chi', table: tab, cs, rows: E.ageNames, cols: optLabels(i) }); }
       });
-      cb.items.filter(i => ['likert', 'need'].includes(i.kind)).forEach(i => { const kw = S.kruskal(bands.map(b => b.map(r => r.a[i.id]).filter(x => x !== undefined))); if (kw) push(i.id, E.short(E.qtext(i), 70), 'Age band', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²'); });
+      cb.items.filter(i => ['likert', 'need'].includes(i.kind)).forEach(i => { const g = bandVals(i.id), kw = S.kruskal(g); if (kw) push(i.id, E.short(E.qtext(i), 70), 'Age band', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²', { kind: 'kw', groups: g, names: E.ageNames }); });
       cb.items.filter(i => i.kind === 'multi' && !i.dyn && i.role !== 'profile').forEach(i => {
-        let best = null; i.opts.forEach((o, j) => { const t = bands.map(b => { const n = b.filter(r => r.a[i.id]).length, k = b.filter(r => r.a[i.id] && r.a[i.id].includes(j)).length; return [k, n - k]; }); const cs = S.chiSquare(t); if (cs && (!best || cs.p < best.cs.p)) best = { cs, j }; });
-        if (best) push(i.id, E.short(E.qtext(i), 55) + ' → ' + E.short(o0(i, best.j), 28), 'Age band', 'χ² (most different option)', best.cs.chi2, best.cs.df, best.cs.p, best.cs.V, "Cramér's V");
+        let best = null; i.opts.forEach((o, j) => { const t = bands.map(b => { const n = b.filter(r => r.a[i.id]).length, k = b.filter(r => r.a[i.id] && r.a[i.id].includes(j)).length; return [k, n - k]; }); const cs = S.chiSquare(t); if (cs && (!best || cs.p < best.cs.p)) best = { cs, j, t }; });
+        if (best) push(i.id, E.short(E.qtext(i), 55) + ' → ' + E.short(i.opts[best.j][0], 28), 'Age band', 'χ² (most different option)', best.cs.chi2, best.cs.df, best.cs.p, best.cs.V, "Cramér's V", { kind: 'chi', table: best.t, cs: best.cs, rows: E.ageNames, cols: ['ticked “' + E.short(i.opts[best.j][0], 30) + '”', 'did not tick it'], onlyCol: 0 });
       });
-      function o0(i, j) { return i.opts[j][0]; }
       // sex (girls and boys) on gathering and refuge items; area on access items
-      const sexG = [valid.filter(r => r.a.A1 === 1), valid.filter(r => r.a.A1 === 0)];
-      ['N1.1', 'N1.6'].filter(id => it[id]).forEach(id => { const kw = S.kruskal(sexG.map(g => g.map(r => r.a[id]).filter(x => x !== undefined))); if (kw && sexG.every(g => g.length >= MIN_N)) push(id, E.short(E.qtext(it[id]), 70), 'Sex (girls vs boys)', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²'); });
-      ['T3', 'T4', 'T12', 'S3'].filter(id => it[id]).forEach(id => { const t = sexG.map(g => { const c = [0, 0, 0, 0]; g.forEach(r => { if (r.a[id] !== undefined) c[r.a[id]]++; }); return c; }); const cs = S.chiSquare(t); if (cs && sexG.every(g => g.length >= MIN_N)) push(id, E.short(E.qtext(it[id]) || it[id].id, 60), 'Sex (girls vs boys)', 'χ² independence', cs.chi2, cs.df, cs.p, cs.V, "Cramér's V"); });
+      const sexG = [valid.filter(r => r.a.A1 === 1), valid.filter(r => r.a.A1 === 0)], sexN = ['Girls', 'Boys'];
+      ['N1.1', 'N1.6'].filter(id => it[id]).forEach(id => { const g = sexG.map(x => x.map(r => r.a[id]).filter(v => v !== undefined)), kw = S.kruskal(g); if (kw && sexG.every(x => x.length >= MIN_N)) push(id, E.short(E.qtext(it[id]), 70), 'Sex (girls vs boys)', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²', { kind: 'kw', groups: g, names: sexN }); });
+      ['T3', 'T4', 'T12', 'S3'].filter(id => it[id]).forEach(id => { const t = sexG.map(g => { const c = [0, 0, 0, 0]; g.forEach(r => { if (r.a[id] !== undefined) c[r.a[id]]++; }); return c; }); const cs = S.chiSquare(t); if (cs && sexG.every(g => g.length >= MIN_N)) push(id, E.short(E.qtext(it[id]) || it[id].id, 60), 'Sex (girls vs boys)', 'χ² independence', cs.chi2, cs.df, cs.p, cs.V, "Cramér's V", { kind: 'chi', table: t, cs, rows: sexN, cols: optLabels(it[id]) }); });
       const homeG = [valid.filter(r => r.a.A2 === 0), valid.filter(r => r.a.A2 === 1 || r.a.A2 === 2)];   // Ilagan residents against teens from elsewhere (D69)
-      if (homeG.every(g => g.length >= MIN_N)) need.forEach(nr => { const kw = S.kruskal(homeG.map(g => g.map(r => r.a[nr.id]).filter(x => x !== undefined))); if (kw) push(nr.id, E.short(nr.q[0], 70), 'Ilagan vs elsewhere', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²'); });
+      if (homeG.every(g => g.length >= MIN_N)) need.forEach(nr => { const g = homeG.map(x => x.map(r => r.a[nr.id]).filter(v => v !== undefined)), kw = S.kruskal(g); if (kw) push(nr.id, E.short(nr.q[0], 70), 'Ilagan vs elsewhere', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²', { kind: 'kw', groups: g, names: ['Ilagan', 'Elsewhere'] }); });
       const areaG = [0, 1, 2].map(a => valid.filter(r => r.a.A3 === a));
-      ['E5'].filter(id => it[id]).forEach(id => { const kw = S.kruskal(areaG.map(g => g.map(r => r.a[id]).filter(x => x !== undefined))); if (kw && areaG.every(g => g.length >= MIN_N)) push(id, E.short(E.qtext(it[id]), 70), 'Area of residence', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²'); });
+      ['E5'].filter(id => it[id]).forEach(id => { const g = areaG.map(x => x.map(r => r.a[id]).filter(v => v !== undefined)), kw = S.kruskal(g); if (kw && areaG.every(x => x.length >= MIN_N)) push(id, E.short(E.qtext(it[id]), 70), 'Area of residence', 'Kruskal–Wallis', kw.H, kw.df, kw.p, kw.eps2, 'ε²', { kind: 'kw', groups: g, names: it.A3 ? it.A3.opts.map(o => E.short(o[0], 30)) : ['Area 1', 'Area 2', 'Area 3'] }); });
       const adj = S.holm(holmAll);
       rowsT.forEach((r, i) => r.adj = adj[i]);
       const sorted = rowsT.slice().sort((a, b) => a.p - b.p);
       flags.cross = sorted.filter(r => r.adj < 0.05);
+      // post-hoc: where each significant difference lies
+      const post = [];
+      flags.cross.forEach(r => {
+        const d = r.detail; if (!d) return;
+        if (d.kind === 'kw') S.dunn(d.groups).forEach(x => { if (x.adj < 0.05) post.push([r.id, E.short(r.label, 60), r.group, d.names[x.i] + ' vs ' + d.names[x.j] + ': higher in ' + d.names[x.mi > x.mj ? x.i : x.j], 'Dunn z', x.z, x.adj]); });
+        else {
+          const rowIdx = d.table.map((row, k) => (S.sum(row) > 0 ? k : -1)).filter(k => k >= 0);
+          d.cs.residuals.forEach((rr, a) => rr.forEach((z, b) => {
+            const col = d.cs.kept[b]; if (d.onlyCol !== undefined && col !== d.onlyCol) return;
+            if (Math.abs(z) >= 1.96) post.push([r.id, E.short(r.label, 60), r.group, d.rows[rowIdx[a]] + ': ' + d.cols[col] + (z > 0 ? ' more often' : ' less often') + ' than expected', 'Adjusted residual', z, NaN]);
+          }));
+        }
+      });
+      const effOf = kind => sorted.filter(r => r.extra === kind && isFinite(r.eff)).sort((a, b) => b.eff - a.eff).slice(0, 12).map(r => ({ label: r.id + ' · ' + E.short(r.label, 46) + ' (' + r.group.replace(' (girls vs boys)', '') + ')', v: r.eff, sig: r.adj < 0.05 }));
       add({
         id: 'cross', title: 'Differences by age band, sex and area of residence', rq: 'RQ2, RQ3 / Objectives 2–3',
         intent: 'Find the questions on which the age bands differ (the study’s main internal comparison), and the few differences by sex and area that bear on design.',
-        description: 'Every single-answer, rating and need question is compared across the three age bands; the most different option of each multiple-answer question is compared too. Girls and boys are compared on gathering, refuge, and supervision items; Ilagan residents and teens from elsewhere on need strength; and areas of Ilagan on group size. All tests together share one Holm correction.',
-        formula: 'Categories: χ² = Σ(O − E)² ÷ E; Cramér’s V = √(χ² ÷ (n(k − 1))).  Ordered ratings and group sizes: Kruskal–Wallis H (tie-corrected); ε² = H ÷ ((n² − 1) ÷ (n + 1)).  Holm: sorted p-values p(i) × (m − i + 1), made non-decreasing.  A group under 10 respondents is not tested.',
-        reading: 'Effect size matters more than p: V or ε² near 0.1 is small, 0.3 medium. A difference by age band that survives the Holm correction is a reason to grade the plan by age (refuge, supervision, dimensions). The sample is non-probability: these tests describe differences in the sample and are exploratory.',
+        description: 'Every single-answer, rating and need question is compared across the three age bands; the most different option of each multiple-answer question is compared too. Girls and boys are compared on gathering, refuge, and supervision items; Ilagan residents and teens from elsewhere on need strength; and areas of Ilagan on group size. All tests together share one Holm correction. Where a difference remains, a post-hoc step shows where it lies.',
+        formula: 'Categories: χ² = Σ(O − E)² ÷ E; Cramér’s V = √(χ² ÷ (n(k − 1))).  Ordered ratings and group sizes: Kruskal–Wallis H (tie-corrected); ε² = H ÷ ((n² − 1) ÷ (n + 1)).  Holm: sorted p-values p(i) × (m − i + 1), made non-decreasing.  Post-hoc: adjusted residual (O − E) ÷ √(E(1 − row share)(1 − column share)), |r| ≥ 1.96 marks a cell; Dunn’s z for pairs of groups, Holm across the pairs.  A group under 10 respondents is not tested.',
+        reading: 'Effect size matters more than p: V or ε² near 0.1 is small, 0.3 medium. A difference by age band that survives the Holm correction is a reason to grade the plan by age (refuge, supervision, dimensions); the post-hoc table names the band and the choice behind it. The sample is non-probability: these tests describe differences in the sample and are exploratory.',
         blocks: [T('Tests ranked by p-value (' + rowsT.length + ' tests; ' + flags.cross.length + ' remain below .05 after Holm)', ['Code', 'Question', 'Compared by', 'Test', 'Statistic', 'df', 'p', 'Holm p', 'Effect size', 'Effect'],
-          sorted.slice(0, 40).map(r => [r.id, r.label, r.group, r.test, r.stat, r.df, r.p, r.adj, r.eff, r.extra]), { fmt: ['text', 'text', 'text', 'text', 'd2', 'n', 'p', 'p', 'd3', 'text'], collapse: true })],
+          sorted.slice(0, 40).map(r => [r.id, r.label, r.group, r.test, r.stat, r.df, r.p, r.adj, r.eff, r.extra]), { fmt: ['text', 'text', 'text', 'text', 'd2', 'n', 'p', 'p', 'd3', 'text'], collapse: true }),
+          E.effects("Size of the largest differences in choices (Cramér's V); ★ = remains significant after Holm", effOf("Cramér's V"), { bands: [0.1, 0.3, 0.5], max: 0.6 }),
+          E.effects('Size of the largest differences in ratings and group size (ε²); ★ = remains significant after Holm', effOf('ε²'), { bands: [0.01, 0.06, 0.14], max: 0.2 }),
+          post.length ? T('Where the differences lie (post-hoc, for the tests that remain significant)', ['Code', 'Question', 'Compared by', 'Finding', 'Statistic', 'Value', 'Holm p (pairs)'], post, { fmt: ['text', 'text', 'text', 'text', 'text', 'd2', 'p'], note: 'Adjusted residuals beyond ±1.96 mark the cells that drive a chi-square difference; Dunn’s test names the pairs of groups that differ on a rating.' })
+            : E.note('No test remains significant after the Holm correction, so there is no post-hoc step to report.')],
       });
     }
 
@@ -877,7 +1027,17 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
         description: 'For each consideration the page lists its indicators: the design decisions (clear preference or none), the leading options of each choice question, and the leading follow-up details. Each line names the question, the finding and the number of teens behind it.',
         formula: 'Decision: leading share of choosers; “clear” = χ² goodness of fit p < .05 and leading share ≥ 45%.  Details: leading three options with their % of those asked.',
         reading: 'Keep, adjust or drop each strategy under the research objectives according to these lines (Section 3.6). Read the n: a line backed by few teens is only an indication.',
-        blocks: [T('Evidence by design consideration', ['Consideration', 'Code', 'Type', 'Question or set', 'Finding', 'n'], lines, { fmt: ['text', 'text', 'text', 'text', 'text', 'n'], wide: true })],
+        blocks: [E.flow('From the survey to the design: how the evidence travels',
+          [[{ id: 's1', t: 'Needs and gaps', v: need.length + ' needs', s: flags.needTop && flags.needTop[0] ? 'top gap: ' + E.short(flags.needTop[0].label, 26) : 'Priority Gap Index', tone: 0 },
+            { id: 's2', t: 'Design decisions', v: tripleStats.length + ' sets of three', s: tripleStats.filter(s => s.clear).length + ' with a clear preference', tone: 0 },
+            { id: 's3', t: 'Design details', v: cb.items.filter(i => i.kind === 'multi' && i.branch).length + ' follow-ups', s: 'which kind, which features', tone: 0 },
+            { id: 's4', t: 'Coin game', v: cb.items.filter(i => i.kind === 'game').length + ' priced items', s: 'what comes first', tone: 0 },
+            { id: 's5', t: 'Teens’ own words', v: (flags.openCoded || []).length + ' texts', s: 'themes with counts', tone: 0 }],
+           [{ id: 'c', t: 'Design considerations', v: String(Object.keys(cb.considerations).length), s: 'evidence grouped as in Table 3.2', tone: 1 }],
+           [{ id: 'g', t: 'Design strategies', v: 'keep · adjust · drop', s: 'under each research objective', tone: 4 }],
+           [{ id: 'p', t: 'Space program', v: 'spaces and sizes', tone: 2 }, { id: 'd', t: 'Schematic design', v: 'plan and form', tone: 2 }]],
+          ['s1', 's2', 's3', 's4', 's5'].map(x => [x, 'c']).concat([['c', 'g'], ['g', 'p'], ['g', 'd']])),
+          T('Evidence by design consideration', ['Consideration', 'Code', 'Type', 'Question or set', 'Finding', 'n'], lines, { fmt: ['text', 'text', 'text', 'text', 'text', 'n'], wide: true })],
       });
     }
 
@@ -913,6 +1073,8 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
         ['Kruskal–Wallis H', 'Ratings and group sizes by group', 'Whether groups rate a need, or gather in groups, differently', 'H = [12/(N(N+1)) Σ Rᵢ²/nᵢ − 3(N+1)] ÷ tie correction'],
         ['Epsilon-squared', 'Effect size of H', 'How large that rating difference is', 'ε² = H / ((N²−1)/(N+1))'],
         ['Spearman rho', 'Need strength against age', 'Whether a need grows or fades as teens get older, year by year', 'ρ = Pearson correlation of ranks; t = ρ√((n−2)/(1−ρ²))'],
+        ["Dunn's post-hoc test", 'Pairs of groups after Kruskal–Wallis', 'Which age bands (or groups) actually differ, once a difference is found', 'z = (R̄ᵢ − R̄ⱼ) / √(σ²(1/nᵢ + 1/nⱼ)), tie-corrected σ²; Holm across pairs'],
+        ['Adjusted residual', 'Cells after a chi-square difference', 'Which group chose which option more or less often than expected', 'r = (O−E) / √(E(1−row share)(1−column share)); |r| ≥ 1.96'],
         ['Holm correction', 'All families of tests', 'Guards against false findings when many tests are run at once', 'p(i)·(m−i+1), made non-decreasing'],
         ['k-means and silhouette', 'Need segments', 'Whether teens form distinct user types, and how clearly', 'min Σ‖x−c‖²; s = (b−a)/max(a,b)'],
         ['Ilagan-only comparison', 'Key findings', 'Whether teens from outside Ilagan changed any finding the design rests on', 'Each finding recomputed for residents of the City of Ilagan (A2)'],
@@ -1028,18 +1190,94 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     b.items.forEach(i => {
       const w = Math.max(0, Math.min(100, 100 * (i.value || 0) / mx)); let wh = '';
       if (i.lo !== undefined && isFinite(i.lo)) { const a = 100 * i.lo / mx, z = 100 * i.hi / mx; wh = '<span class="whisk" style="left:' + Math.max(0, a) + '%;width:' + Math.max(0, Math.min(100, z) - Math.max(0, a)) + '%"></span>'; }
-      h += '<div class="brow"><div class="lab">' + esc(i.label) + '</div><div class="track"><div class="fill" style="width:' + w + '%"></div>' + wh + '</div><div class="val">' + esc(i.text || '') + '</div></div>';
+      h += '<div class="brow"' + tip(i.label + ': ' + (i.text || '') + (i.lo !== undefined && isFinite(i.lo) ? ' (95% CI ' + i.lo.toFixed(1) + '–' + i.hi.toFixed(1) + ')' : '')) + '><div class="lab">' + esc(i.label) + '</div><div class="track"><div class="fill" style="width:' + w + '%"></div>' + wh + '</div><div class="val">' + esc(i.text || '') + '</div></div>';
     });
     return h + '</div>';
   }
   const COLORS = ['#2a78d6', '#eda100', '#8b2f8f', '#c2410c'];   // blue, yellow, plum, deep orange: colorblind-safe, validated on all pairs
   const ON = ['#fff', '#1d1b26', '#fff', '#fff'];                  // label ink on each color (yellow takes dark ink)
+  const RAMP = ['#86b6ef', '#5598e7', '#2a78d6', '#1c5cab', '#104281'], RAMP_ON = ['#1d1b26', '#1d1b26', '#fff', '#fff', '#fff'];   // ordinal blue, validated
+  const tip = s => ' data-tip="' + esc(s) + '"';
   function renderStack(b) {
-    let h = '<div class="tcap">' + esc(b.caption) + '</div><div class="legend">' + b.series.map((s, i) => '<span style="--c:' + COLORS[i] + '">' + esc(s) + '</span>').join('') + '</div>';
+    const col = b.ramp ? RAMP : COLORS, on = b.ramp ? RAMP_ON : ON;
+    let h = '<div class="tcap">' + esc(b.caption) + '</div><div class="legend">' + b.series.map((s, i) => '<span style="--c:' + col[i] + '">' + esc(s) + '</span>').join('') + '</div>';
     b.items.forEach(it => {
-      h += '<div class="stackrow"><div>' + esc(it.label) + ' <small>(n = ' + it.n + ')</small></div><div class="stk">' + it.segs.map((v, i) => '<i style="width:' + (isFinite(v) ? v : 0) + '%;background:' + COLORS[i] + ';color:' + ON[i] + '" title="' + esc(b.series[i]) + ' ' + (isFinite(v) ? v.toFixed(1) : '–') + '%">' + (v >= 9 ? v.toFixed(0) + '%' : '') + '</i>').join('') + '</div></div>';
+      h += '<div class="stackrow"><div>' + esc(it.label) + ' <small>(n = ' + it.n + ')</small></div><div class="stk">' + it.segs.map((v, i) => '<i style="width:' + (isFinite(v) ? v : 0) + '%;background:' + col[i] + ';color:' + on[i] + '"' + tip(it.label + ' · ' + b.series[i] + ': ' + (isFinite(v) ? v.toFixed(1) : '–') + '%') + '>' + (v >= 9 ? v.toFixed(0) + '%' : '') + '</i>').join('') + '</div></div>';
     });
     return h;
+  }
+  // flowchart: columns of nodes joined by curved arrows; solid links carry moving light, dashed links are removals
+  const TONES = [['#2a78d6', '#5b3fc4'], ['#3d2370', '#8b2f8f'], ['#5b3fc4', '#2a78d6'], ['#c2410c', '#8b2f8f'], ['#eda100', '#f2c14e']];
+  function renderFlow(b) {
+    const nc = b.cols.length, W = 940, colW = W / nc, nw = Math.min(205, colW - 34), nh = 62, gap = 14;
+    const H = Math.max(...b.cols.map(c => c.length)) * (nh + gap) + 24, pos = {};
+    let defs = '<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="#7a6fb0"/></marker>'
+      + TONES.map((t, i) => '<linearGradient id="tn' + i + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + t[0] + '"/><stop offset="1" stop-color="' + t[1] + '"/></linearGradient>').join('') + '</defs>';
+    let nodes = '';
+    b.cols.forEach((col, ci) => {
+      const top = (H - col.length * (nh + gap) + gap) / 2;
+      col.forEach((n, k) => {
+        const x = ci * colW + (colW - nw) / 2, y = top + k * (nh + gap), ink = n.tone === 4 ? '#1d1b26' : '#fff'; pos[n.id] = { x, y };
+        nodes += '<g class="fnode"' + tip(n.t + (n.v ? ': ' + n.v : '') + (n.s ? ' (' + n.s + ')' : '')) + '><rect x="' + x + '" y="' + y + '" width="' + nw + '" height="' + nh + '" rx="12" fill="url(#tn' + (n.tone || 0) + ')"/>'
+          + '<text x="' + (x + 12) + '" y="' + (y + 18) + '" font-size="11.5" font-weight="600" fill="' + ink + '" opacity=".92">' + esc(n.t) + '</text>'
+          + '<text x="' + (x + 12) + '" y="' + (y + 39) + '" font-size="17" font-weight="700" fill="' + ink + '">' + esc(n.v || '') + '</text>'
+          + (n.s ? '<text x="' + (x + 12) + '" y="' + (y + 54) + '" font-size="10.5" fill="' + ink + '" opacity=".85">' + esc(n.s) + '</text>' : '') + '</g>';
+      });
+    });
+    let links = '';
+    b.edges.forEach(e => {
+      const a = pos[e[0]], z = pos[e[1]]; if (!a || !z) return;
+      const x1 = a.x + nw, y1 = a.y + nh / 2, x2 = z.x - 3, y2 = z.y + nh / 2, mx = (x1 + x2) / 2, d = 'M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + x2 + ',' + y2;
+      links += '<path d="' + d + '" fill="none" stroke="#9d93cf" stroke-width="2"' + (e[2] ? ' stroke-dasharray="5 5"' : '') + ' marker-end="url(#arw)"/>' + (e[2] ? '' : '<path class="flowdash" d="' + d + '" fill="none"/>');
+    });
+    return '<div class="tcap">' + esc(b.caption) + '</div><svg class="sc flow" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(b.caption) + '">' + defs + links + nodes + '</svg>';
+  }
+  function axisFrame(W, H, L, T, pw, ph, ymax, yl, step) {
+    let s = ''; for (let t = 0; t <= ymax + 1e-9; t += step) { const y = T + ph * (1 - t / ymax); s += '<line x1="' + L + '" y1="' + y + '" x2="' + (L + pw) + '" y2="' + y + '" stroke="#e4e2ec"/><text x="' + (L - 7) + '" y="' + (y + 4) + '" font-size="11.5" text-anchor="end" fill="#4a4757">' + (Number.isInteger(t) ? t : t.toFixed(1)) + '</text>'; }
+    return s + '<text x="14" y="' + (T + ph / 2) + '" font-size="12" text-anchor="middle" fill="#4a4757" transform="rotate(-90 14 ' + (T + ph / 2) + ')">' + esc(yl || '') + '</text>';
+  }
+  const niceStep = m => m <= 5 ? 1 : m <= 12 ? 2 : m <= 30 ? 5 : m <= 60 ? 10 : m <= 150 ? 25 : 50;
+  function renderHist(b) {
+    const W = 720, H = 290, L = 52, R = 14, T = 26, Bm = 46, pw = W - L - R, ph = H - T - Bm, nb = b.bins.length;
+    if (!b.bins.some(x => x.n)) return '<div class="tcap">' + esc(b.caption) + '</div><p class="tnote">No responses yet.</p>';
+    const st = niceStep(Math.max(...b.bins.map(x => x.n))), ymax = Math.ceil(Math.max(...b.bins.map(x => x.n)) / st) * st, bw = pw / nb, X = m => L + pw * m / b.bins[nb - 1].x1;
+    let s = axisFrame(W, H, L, T, pw, ph, ymax, b.yl, st);
+    b.bins.forEach((x, i) => { const h = ph * x.n / ymax, y = T + ph - h; s += '<rect x="' + (L + i * bw + 1) + '" y="' + y + '" width="' + Math.max(1, bw - 2) + '" height="' + h + '" rx="3" fill="#2a78d6"' + tip(x.label + ': ' + x.n + ' response' + (x.n === 1 ? '' : 's')) + '/>'; if (nb <= 16 || i % 2 === 0) s += '<text x="' + (L + i * bw + bw / 2) + '" y="' + (T + ph + 15) + '" font-size="10.5" text-anchor="middle" fill="#4a4757">' + x.x0 + '</text>'; });
+    (b.marks || []).forEach((m, k) => { const x = X(Math.min(m.x, b.bins[nb - 1].x1)); s += '<line x1="' + x + '" y1="' + (T - 6) + '" x2="' + x + '" y2="' + (T + ph) + '" stroke="#1d1b26" stroke-width="1.5" stroke-dasharray="' + (k ? '2 3' : '6 4') + '"/><text x="' + (x + 5) + '" y="' + (T - 10 + k * 13) + '" font-size="11" fill="#1d1b26">' + esc(m.label) + ' (' + m.x.toFixed(1) + ' min)</text>'; });
+    s += '<text x="' + (L + pw / 2) + '" y="' + (H - 8) + '" font-size="12" text-anchor="middle" fill="#4a4757">' + esc(b.xl || '') + '</text>';
+    return '<div class="tcap">' + esc(b.caption) + '</div><svg class="sc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(b.caption) + '">' + s + '</svg>';
+  }
+  function renderLine(b) {
+    const W = 720, H = 270, L = 52, R = 70, T = 20, Bm = 40, pw = W - L - R, ph = H - T - Bm, n = b.pts.length;
+    if (!n) return '<div class="tcap">' + esc(b.caption) + '</div><p class="tnote">No valid responses yet.</p>';
+    const top = Math.max(b.target || 0, ...b.pts.map(p => p.y)), st = niceStep(top * 1.1), ymax = Math.ceil(top * 1.1 / st) * st;
+    const X = i => L + (n === 1 ? pw / 2 : pw * i / (n - 1)), Y = v => T + ph * (1 - v / ymax);
+    let s = '<defs><linearGradient id="lnfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a78d6" stop-opacity=".28"/><stop offset="1" stop-color="#2a78d6" stop-opacity="0"/></linearGradient></defs>' + axisFrame(W, H, L, T, pw, ph, ymax, b.yl, st);
+    if (b.target) s += '<line x1="' + L + '" y1="' + Y(b.target) + '" x2="' + (L + pw) + '" y2="' + Y(b.target) + '" stroke="#7a4f00" stroke-width="1.5" stroke-dasharray="6 4"/><text x="' + (L + pw + 6) + '" y="' + (Y(b.target) + 4) + '" font-size="11.5" fill="#7a4f00">Target ' + b.target + '</text>';
+    const pts = b.pts.map((p, i) => X(i) + ',' + Y(p.y)).join(' ');
+    if (n > 1) s += '<polygon points="' + X(0) + ',' + Y(0) + ' ' + pts + ' ' + X(n - 1) + ',' + Y(0) + '" fill="url(#lnfill)"/><polyline points="' + pts + '" fill="none" stroke="#2a78d6" stroke-width="2.2" stroke-linejoin="round"/>';
+    b.pts.forEach((p, i) => { s += '<circle cx="' + X(i) + '" cy="' + Y(p.y) + '" r="4.5" fill="#2a78d6" stroke="#fff" stroke-width="1.5"' + tip(p.x + ': ' + p.y + ' valid in total') + '/>'; if (n <= 14 || i % Math.ceil(n / 14) === 0) s += '<text x="' + X(i) + '" y="' + (T + ph + 16) + '" font-size="10.5" text-anchor="middle" fill="#4a4757">' + esc(p.x) + '</text>'; });
+    const last = b.pts[n - 1]; s += '<text x="' + (X(n - 1) + 8) + '" y="' + (Y(last.y) - 8) + '" font-size="12" font-weight="700" fill="#1c5cab">' + last.y + '</text>';
+    return '<div class="tcap">' + esc(b.caption) + '</div><svg class="sc" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(b.caption) + '">' + s + '</svg>';
+  }
+  function renderDots(b) {
+    const lo = b.min || 0, hi = b.max || 1, P = v => 100 * (v - lo) / (hi - lo);
+    let h = '<div class="tcap">' + esc(b.caption) + '</div><div class="legend">' + b.series.map((s, i) => '<span style="--c:' + COLORS[i] + '">' + esc(s) + '</span>').join('') + '<span class="star">★ differs after Holm</span></div><div class="dotplot">';
+    b.rows.forEach(r => {
+      const v = r.vals.filter(isFinite), a = v.length ? Math.min(...v) : 0, z = v.length ? Math.max(...v) : 0;
+      h += '<div class="drow"><div class="lab">' + esc(r.label) + (r.sig ? ' <b class="star">★</b>' : '') + '</div><div class="dtrack">' + (v.length > 1 ? '<span class="dspan" style="left:' + P(a) + '%;width:' + (P(z) - P(a)) + '%"></span>' : '')
+        + r.vals.map((x, i) => isFinite(x) ? '<span class="dot2" style="left:' + P(x) + '%;background:' + COLORS[i] + '"' + tip(r.label + ' · ' + b.series[i] + ': ' + x.toFixed(2)) + '></span>' : '').join('') + '</div></div>';
+    });
+    const ticks = []; for (let t = lo; t <= hi; t++) ticks.push('<span style="left:' + P(t) + '%">' + t + '</span>');
+    return h + '<div class="drow axis"><div></div><div class="dtrack ticks">' + ticks.join('') + '</div></div></div>' + (b.rows.some(r => r.vals.some(x => !isFinite(x))) ? '<div class="tnote">A missing dot is an age band with fewer than 10 answers.</div>' : '');
+  }
+  function renderEffects(b) {
+    if (!b.items.length) return '<div class="tcap">' + esc(b.caption) + '</div><p class="tnote">No tests of this kind yet.</p>';
+    const mx = b.max || 1, P = v => Math.min(100, 100 * v / mx), bd = b.bands || [];
+    const zones = '<span class="ez" style="left:0;width:' + P(bd[0]) + '%"></span><span class="ez z1" style="left:' + P(bd[0]) + '%;width:' + (P(bd[1]) - P(bd[0])) + '%"></span><span class="ez z2" style="left:' + P(bd[1]) + '%;width:' + (P(bd[2]) - P(bd[1])) + '%"></span><span class="ez z3" style="left:' + P(bd[2]) + '%;width:' + (100 - P(bd[2])) + '%"></span>';
+    let h = '<div class="tcap">' + esc(b.caption) + '</div><div class="legend"><span class="zl">negligible</span><span class="zl z1">small ≥ ' + bd[0] + '</span><span class="zl z2">medium ≥ ' + bd[1] + '</span><span class="zl z3">large ≥ ' + bd[2] + '</span></div><div class="effects">';
+    b.items.forEach(i => { h += '<div class="brow"><div class="lab">' + esc(i.label) + '</div><div class="track etrack">' + zones + '<div class="fill" style="width:' + P(i.v) + '%"' + tip(i.label + ': ' + i.v.toFixed(3) + (i.sig ? ' (significant after Holm)' : '')) + '></div></div><div class="val">' + i.v.toFixed(3) + (i.sig ? ' ★' : '') + '</div></div>'; });
+    return h + '</div>';
   }
   function renderScatter(b) {
     const W = 720, H = 470, L = 62, R = 18, T = 20, Bm = 56, pw = W - L - R, ph = H - T - Bm;
@@ -1071,7 +1309,8 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     s += marks;
     return '<div class="tcap">' + esc(b.caption) + '</div>' + s + '</svg>' + (keyed.length ? '<div class="tnote">Numbered points: ' + keyed.map(k => k[0] + ' = ' + esc(k[1])).join('; ') + '.</div>' : '');
   }
-  const renderBlock = b => b.type === 'table' ? renderTable(b) : b.type === 'bars' ? renderBars(b) : b.type === 'stack' ? renderStack(b) : b.type === 'scatter' ? renderScatter(b) : b.type === 'note' ? '<p>' + b.html + '</p>' : '';
+  const RENDER = { table: renderTable, bars: renderBars, stack: renderStack, scatter: renderScatter, flow: renderFlow, hist: renderHist, line: renderLine, dots: renderDots, effects: renderEffects };
+  const renderBlock = b => RENDER[b.type] ? RENDER[b.type](b) : b.type === 'note' ? '<p class="tnote">' + esc(b.html) + '</p>' : '';
 
   // ------------------------------------------------------------------------------------------ the page
   function render() {
@@ -1084,13 +1323,13 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     $('#demobar').classList.toggle('hidden', !st.demo);
     $('#btn-admin').classList.toggle('hidden', st.demo || st.role !== 'admin');
     const lastIso = res.modules[0].blocks[0].rows.find(r => r[0] === 'Last response received');
-    const kp = [[N, 'valid responses'], [Math.round(100 * N / 50) + '%', 'of the 50 target'], [E.byAge(cl.valid).map(b => b.length).join(' / '), 'by age band (10–13 / 14–16 / 17–19)'], [st.consentCount, 'parent consents recorded (count only)'], [(cl.counts.fast + cl.counts.duplicate + cl.counts.straight + cl.counts.incomplete), 'removed by cleaning']];
+    const kp = [[N, 'valid responses'], [Math.round(100 * N / 50) + '%', 'of the 50 target', Math.min(100, 100 * N / 50)], [E.byAge(cl.valid).map(b => b.length).join(' / '), 'by age band (10–13 / 14–16 / 17–19)'], [st.consentCount, 'parent consents recorded (count only)'], [(cl.counts.fast + cl.counts.duplicate + cl.counts.straight + cl.counts.incomplete), 'removed by cleaning']];
     let html = '<div class="printhead"><h1>KAMANG Teen Survey: results summary</h1><p>Restorative and Coherent Design: Basis for the Architectural Design of KAMANG, the Ilagan City Teen Center</p><p>' + (st.demo ? '<b>SYNTHETIC DATA FOR PREVIEW. NOT REAL RESPONSES. NOT FOR SUBMISSION.</b><br>' : '') + 'Generated ' + new Date().toLocaleString() + ' · ' + N + ' valid of ' + st.D.N + ' responses · ' + (lastIso ? 'last response ' + esc(lastIso[1]) : '') + '</p></div>';
-    html += '<div class="kpis noprint">' + kp.map(k => '<div class="kpi"><b>' + esc(k[0]) + '</b><span>' + esc(k[1]) + '</span></div>').join('') + '</div>';
-    html += '<section class="card" id="m-insights"><h2>Key insights</h2><p class="rq">Computed from the current responses</p><ol class="insights">' + res.insights.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol><div class="tnote">Insights are computed automatically from the analyses below. Read each against its n and its caveats before using it in the thesis.</div></section>';
+    html += '<div class="kpis noprint">' + kp.map(k => '<div class="kpi"><b>' + esc(k[0]) + '</b><span>' + esc(k[1]) + '</span>' + (k[2] !== undefined ? '<i class="kbar"><i style="width:' + k[2] + '%"></i></i>' : '') + '</div>').join('') + '</div>';
+    html += '<section class="card insights-card" id="m-insights"><h2><span class="num">★</span>Key insights</h2><p class="rq">Computed from the current responses</p><ol class="insights">' + res.insights.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol><div class="tnote">Insights are computed automatically from the analyses below. Read each against its n and its caveats before using it in the thesis.</div></section>';
     res.modules.forEach((m, i) => {
-      html += '<section class="card" id="m-' + m.id + '"><h2>' + (i + 1) + '. ' + esc(m.title) + '</h2><span class="rq">' + esc(m.rq) + '</span>'
-        + '<div class="facts"><div><b>Intent</b>' + esc(m.intent) + '</div><div><b>What it is</b>' + esc(m.description) + '</div>' + (m.yields ? '<div class="yields"><b>What it gives the study</b>' + esc(m.yields) + '</div>' : '') + '<div class="formula"><b>Formula</b><span>' + esc(m.formula) + '</span></div><div class="formula"><b>How to read it</b>' + esc(m.reading) + '</div></div>'
+      html += '<section class="card" id="m-' + m.id + '"><h2><span class="num">' + (i + 1) + '</span><span class="pnum">' + (i + 1) + '. </span>' + esc(m.title) + '</h2><span class="rq">' + esc(m.rq) + '</span>'
+        + '<div class="facts"><div class="f-intent"><b>Intent</b>' + esc(m.intent) + '</div><div class="f-what"><b>What it is</b>' + esc(m.description) + '</div>' + (m.yields ? '<div class="yields"><b>What it gives the study</b>' + esc(m.yields) + '</div>' : '') + '<div class="formula f-formula"><b>Formula</b><span>' + esc(m.formula) + '</span></div><div class="formula f-read"><b>How to read it</b>' + esc(m.reading) + '</div></div>'
         + m.blocks.map(renderBlock).join('') + '</section>';
     });
     $('#content').innerHTML = html;
@@ -1115,7 +1354,7 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
   function settingsDialog() {
     const d = modal('<h3>Analysis settings</h3><div class="field"><label><input type="checkbox" id="s-apply"' + (st.opts.apply ? ' checked' : '') + '> Apply the cleaning rules of Section 3.6 (recommended)</label></div>'
       + '<div class="field"><label for="s-frac">Too-fast threshold, as a fraction of the median time (minimum 240 s)</label><input id="s-frac" type="number" min="0.1" max="0.8" step="0.05" value="' + st.opts.speedFrac + '"></div>'
-      + '<p class="tnote">Chapter 3 sets the minimum time as a fraction of the pilot median. After the pilot, put the pilot fraction here.</p><div class="mrow"><button class="btn" id="s-ok">Apply</button><button class="btn ghost" id="s-x">Close</button></div>');
+      + '<p class="tnote">Chapter 3 sets the minimum time as the larger of 240 seconds and a fraction of the median completion time (one third by default).</p><div class="mrow"><button class="btn" id="s-ok">Apply</button><button class="btn ghost" id="s-x">Close</button></div>');
     d.querySelector('#s-x').onclick = () => d.remove();
     d.querySelector('#s-ok').onclick = () => { st.opts.apply = d.querySelector('#s-apply').checked; st.opts.speedFrac = Number(d.querySelector('#s-frac').value) || 0.33; d.remove(); recompute(); };
   }
@@ -1190,7 +1429,7 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
     toast('Building the Excel file…');
     try { await loadScript('https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'); } catch (e) { toast(e.message); return; }
     const wb = new window.ExcelJS.Workbook(); wb.creator = 'KAMANG study'; wb.created = new Date();
-    const HEAD = { font: { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Times New Roman' }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E3D' } }, alignment: { vertical: 'middle', wrapText: true } };
+    const HEAD = { font: { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Times New Roman' }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3D2370' } }, alignment: { vertical: 'middle', wrapText: true } };
     const styleHead = row => row.eachCell(c => Object.assign(c, HEAD));
     const widths = (ws, w) => ws.columns.forEach((c, i) => c.width = w[i] || 14);
     const res = st.res, cl = res.cl;
@@ -1225,7 +1464,12 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
           b.head.forEach((h, c) => widthsArr[c] = Math.max(widthsArr[c] || 10, Math.min(60, String(h).length + 2), Math.min(70, ...[0].map(() => Math.max(...b.rows.map(r => String(typeof r[c] === 'number' ? '0.000' : r[c] || '').length))) + 2)));
         } else if (b.type === 'bars' || b.type === 'stack') {
           tno++; put([b.caption], true); b.type === 'bars' ? b.items.forEach(i => put([i.label, i.value, i.lo === undefined ? '' : i.lo, i.hi === undefined ? '' : i.hi])) : b.items.forEach(i => put([i.label].concat(i.segs))); put(['']);
-        } else if (b.type === 'scatter') { tno++; put([b.caption], true); put(['Need', b.xl, b.yl]); b.pts.forEach(p => put([p.label, p.x, p.y])); put(['']); }
+        } else if (b.type === 'scatter') { tno++; put([b.caption], true); put(['Need', b.xl, b.yl]); b.pts.forEach(p => put([p.full || p.label, p.x, p.y])); put(['']); }
+        else if (b.type === 'flow') { put([b.caption], true); put(['Step', 'Value', 'Note']); b.cols.forEach(c => c.forEach(n => put([n.t, n.v || '', n.s || '']))); put(['']); }
+        else if (b.type === 'hist') { put([b.caption], true); put(['Minutes', 'Responses']); b.bins.forEach(x => put([x.label, x.n])); (b.marks || []).forEach(m => put([m.label + ' (minutes)', m.x])); put(['']); }
+        else if (b.type === 'line') { put([b.caption], true); put(['Day', 'Valid responses so far']); b.pts.forEach(p => put([p.x, p.y])); put(['']); }
+        else if (b.type === 'dots') { put([b.caption], true); put(['Need'].concat(b.series, ['Differs after Holm'])); b.rows.forEach(r => put([r.label].concat(r.vals.map(v => (isFinite(v) ? v : '')), [r.sig ? 'yes' : '']))); put(['']); }
+        else if (b.type === 'effects') { put([b.caption], true); put(['Test', 'Effect size', 'Significant after Holm']); b.items.forEach(i => put([i.label, i.v, i.sig ? 'yes' : ''])); put(['']); }
       });
       w.getColumn(1).width = Math.min(70, Math.max(18, widthsArr[0] || 18)); for (let c = 2; c <= 14; c++) w.getColumn(c).width = Math.min(34, Math.max(11, widthsArr[c - 1] || 11));
     });
@@ -1244,7 +1488,14 @@ svg.sc text{font-family:"Times New Roman",Times,serif}
   }
 
   // ------------------------------------------------------------------------------------------ start
+  function initTips() {                      // one floating tooltip for every element that carries data-tip
+    const t = document.createElement('div'); t.id = 'tip'; document.body.appendChild(t);
+    document.addEventListener('pointerover', e => { const el = e.target.closest && e.target.closest('[data-tip]'); if (!el) { t.classList.remove('on'); return; } t.textContent = el.getAttribute('data-tip'); t.classList.add('on'); });
+    document.addEventListener('pointermove', e => { if (!t.classList.contains('on')) return; const w = t.offsetWidth, x = Math.min(window.innerWidth - w - 8, e.clientX + 14); t.style.left = Math.max(8, x) + 'px'; t.style.top = (e.clientY + 18) + 'px'; });
+    document.addEventListener('scroll', () => t.classList.remove('on'), { passive: true });
+  }
   function init() {
+    initTips();
     $('#lform').addEventListener('submit', e => { e.preventDefault(); signIn($('#luser').value.trim(), $('#lpass').value); });
     $('#ldemo').addEventListener('click', () => { st.demo = true; st.role = 'researcher'; st.user = 'preview'; showMain(); loadData(); });
     $('#btn-out').addEventListener('click', () => { if (st.demo) { st.demo = false; $('#main-app').classList.add('hidden'); $('#login').classList.remove('hidden'); clearInterval(st.timer); } else signOut(); });
