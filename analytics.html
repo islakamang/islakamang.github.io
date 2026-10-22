@@ -457,9 +457,12 @@ svg.sc text{font-family:var(--font)}
     return { cb, items, R, columns, N: R.length };
   };
 
-  // ---- cleaning (Chapter 3.6: incomplete, duplicate, too fast, same answer to every scaled item) ----------------
+  // ---- cleaning (Chapter 3.6, D92) -----------------------------------------------------------------------------
+  // Same answer to every scaled item: removed automatically. Incomplete, duplicate and too fast: flagged and KEPT;
+  // the researcher reviews each flagged case and may exclude them all with opts.excludeFlagged.
+  E.FLAGS = ['incomplete', 'duplicate', 'fast'];
   E.clean = (D, opts) => {
-    opts = Object.assign({ apply: true, speedFrac: 0.33, speedMin: 240 }, opts || {});
+    opts = Object.assign({ apply: true, excludeFlagged: false, speedFrac: 0.33, speedMin: 240 }, opts || {});
     const cb = D.cb, scaled = cb.items.filter(i => i.kind === 'likert' || i.kind === 'need').map(i => i.id), trip = cb.items.filter(i => i.kind === 'triple').map(i => i.id);
     const times = D.R.map(r => r.totalSecs).filter(x => x !== undefined);
     const med = times.length ? S.median(times) : 0, thr = Math.max(opts.speedMin, opts.speedFrac * med);
@@ -476,9 +479,15 @@ svg.sc text{font-family:var(--font)}
       const tv = trip.map(id => r.a[id]).filter(v => v !== undefined);   // v11: every need rating and every set-of-three choice identical
       if (sv.length >= Math.min(8, scaled.length) && sv.every(v => v === sv[0]) && tv.length >= Math.min(5, trip.length) && tv.every(v => v === tv[0])) r.flags.push('straight');
     });
-    D.R.forEach(r => { const f = r.flags.find(x => ['incomplete', 'duplicate', 'fast', 'straight'].includes(x)); if (f) counts[f]++; });
-    const valid = opts.apply ? D.R.filter(r => !r.flags.length) : D.R.slice();
-    return { valid, counts, medianSecs: med, threshold: thr, opts };
+    const removed = D.R.filter(r => r.flags.includes('straight'));
+    const flagged = D.R.filter(r => !r.flags.includes('straight') && r.flags.some(f => E.FLAGS.includes(f)));
+    counts.straight = removed.length;
+    E.FLAGS.forEach(f => { counts[f] = flagged.filter(r => r.flags.includes(f)).length; });
+    counts.flagged = flagged.length;
+    const out = r => r.flags.includes('straight') || (opts.excludeFlagged && r.flags.length > 0);
+    const valid = opts.apply ? D.R.filter(r => !out(r)) : D.R.slice();
+    counts.flaggedOut = opts.apply && opts.excludeFlagged ? flagged.length : 0;
+    return { valid, counts, removed, flagged, medianSecs: med, threshold: thr, opts };
   };
 
   // ---- helpers shared by the analyses --------------------------------------------------------------------------
@@ -549,7 +558,7 @@ svg.sc text{font-family:var(--font)}
 
   // what each analysis gives the study, in plain words (shown on the page and in the Excel export)
   const YIELDS = {
-    quality: 'Whether there are enough trustworthy answers to stand on. It gives the n behind every table in Chapter 4, shows whether the target of 50 is met and all three age bands are present, and shows the panel that careless answers were removed openly, not hidden.',
+    quality: 'Whether there are enough trustworthy answers to stand on. It gives the n behind every table in Chapter 4, shows whether the target of 50 is met and all three age bands are present, and shows the panel that careless answers were removed, and doubtful ones flagged, openly rather than hidden.',
     profile: 'Who the findings speak for. If one age band, sex, or place dominates, the design conclusions lean toward that group, and Chapter 4 says so. It is also the user profile the space program is sized for.',
     needs: 'Which spaces the center must have first. A need that many teens feel strongly and that has no good place near them is the strongest reason to build a space for it, so the gap ranking sets the order of the space program. The age tests show whether the youngest and the oldest users need a different emphasis.',
     triples: 'Direct answers to specific design choices. For each set it says which space to design, or that teens are split and the building should offer more than one option. Each clear result becomes a design decision with teen evidence behind it.',
@@ -586,12 +595,15 @@ svg.sc text{font-family:var(--font)}
       const last = valid.reduce((m, r) => (r.submitted && (!m || r.submitted > m) ? r.submitted : m), null);
       const stage = ['A', 1, 2, 3].map(k => { const v = valid.map(r => r.secs[k]).filter(x => x !== undefined); return v.length ? S.median(v) : NaN; });
       const nb = bands.map(b => b.length);
-      const rem = [['Incomplete', c.incomplete], ['Duplicate', c.duplicate], ['Too fast', c.fast], ['Same answer throughout', c.straight]];
-      const flowB = E.flow('How the responses flow: received, cleaned, valid, and split by age band',
+      const ex = cl.opts.excludeFlagged;
+      const rem = [['Removed: same answer throughout', c.straight, 3], ['Flagged: incomplete', c.incomplete, 2], ['Flagged: duplicate', c.duplicate, 2], ['Flagged: too fast', c.fast, 2]];
+      const flowB = E.flow('How the responses flow: received, checked, valid, and split by age band',
         [[{ id: 'in', t: 'Received', v: String(D.N), s: 'all submissions', tone: 0 }],
-          rem.map((x, i) => ({ id: 'r' + i, t: 'Removed: ' + x[0], v: String(x[1]), tone: 3 })).concat([{ id: 'ok', t: 'Valid', v: String(N), s: (100 * N / 50).toFixed(0) + '% of the target of 50', tone: 1 }]),
+          rem.map((x, i) => ({ id: 'r' + i, t: x[0], v: String(x[1]), s: i ? (ex ? 'excluded by the researcher' : 'kept, for review') : 'automatic', tone: x[2] })).concat([{ id: 'ok', t: 'Valid', v: String(N), s: (100 * N / 50).toFixed(0) + '% of the target of 50', tone: 1 }]),
           E.ageNames.map((nm, i) => ({ id: 'b' + i, t: 'Age ' + nm, v: String(nb[i]), s: N ? (100 * nb[i] / N).toFixed(0) + '% of valid' : '', tone: 2 }))],
-        rem.map((x, i) => ['in', 'r' + i, true]).concat([['in', 'ok']], E.ageNames.map((nm, i) => ['ok', 'b' + i])));
+        rem.map((x, i) => ['in', 'r' + i, !i || ex]).concat([['in', 'ok']], E.ageNames.map((nm, i) => ['ok', 'b' + i])));
+      const fl = (cl.flagged || []).map(r => [r.idx + 2, r.submitted && !isNaN(r.submitted) ? r.submitted.toISOString().slice(0, 16).replace('T', ' ') : '–', r.totalSecs === undefined ? '–' : r.totalSecs,
+        r.flags.filter(f => E.FLAGS.includes(f)).map(f => ({ incomplete: 'incomplete', duplicate: 'duplicate', fast: 'too fast' })[f]).join(', '), ex ? 'excluded' : 'kept']);
       const allMin = D.R.map(r => r.totalSecs).filter(x => x !== undefined).map(x => x / 60);
       const topMin = Math.max(10, Math.min(30, Math.ceil(Math.max(0, ...allMin))));
       const bins = []; for (let m = 0; m < topMin; m++) bins.push({ x0: m, x1: m + 1, n: allMin.filter(t => t >= m && (m === topMin - 1 || t < m + 1)).length, label: m === topMin - 1 ? m + '+ min' : m + '–' + (m + 1) + ' min' });
@@ -600,15 +612,17 @@ svg.sc text{font-family:var(--font)}
       let cum = 0; const lineB = E.line('Valid responses collected so far, against the target of 50', days.map(d => ({ x: d.slice(5), y: (cum += byDay[d]) })), { target: 50, yl: 'Valid responses' });
       add({
         id: 'quality', title: 'Collection status and data quality', rq: 'All objectives',
-        intent: 'Show how many responses are in, whether the sample meets its targets, and how many were removed by the stated cleaning rules.',
-        description: 'Counts every submission, applies the four cleaning rules of Section 3.6 in order, and reports the time teens took. The sample target is 50 valid responses (Section 3.3), a realistic minimum; more are welcome. The age mix is shown beside it.',
-        formula: 'Valid = received − incomplete − duplicate − too fast − same answer to every scaled item.  Too fast: total time < max(240 s, 0.33 × median time).  Same-answer: every need rating identical and every set-of-three choice identical.  Duplicate: identical answers and a start time within 10 min of an earlier response.',
-        reading: 'Each removed case is reported, not hidden. Subgroups under 10 respondents are not reported separately.',
+        intent: 'Show how many responses are in, whether the sample meets its targets, which responses were removed, and which are flagged for the researcher to review.',
+        description: 'Counts every submission and applies the screening of Section 3.6. A response that gives the same answer to every scaled item is removed automatically. Responses that look incomplete, duplicated or too fast are flagged but kept, and are listed here so the researcher can review each one. The sample target is 50 valid responses (Section 3.3); more are welcome.',
+        formula: 'Valid = received − same answer to every scaled item' + (ex ? ' − flagged responses (excluded by the researcher)' : '') + '.  Same answer: every need rating identical and every set-of-three choice identical.  Flags (kept unless excluded): too fast, total time < max(240 s, 0.33 × median time); duplicate, identical answers and a start time within 10 min of an earlier response; incomplete, no answers or no finishing time.',
+        reading: 'Removed and flagged cases are reported, not hidden. A response can carry more than one flag. Subgroups under 10 respondents are not reported separately.',
         blocks: [
-          T('Collection status', ['Measure', 'Value'], [['Responses received', D.N], ['Removed: incomplete', c.incomplete], ['Removed: duplicate', c.duplicate], ['Removed: finished too fast', c.fast],
-            ['Removed: same answer to every scaled item', c.straight], ['Valid responses used in the analyses', N], ['Target (valid)', 50], ['Progress to target', 100 * N / 50],
-            ['Last response received', last ? last.toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : '–']], { fmt: ['text', 'x'], fmtRows: { 7: 'pct' } }),
-          flowB, lineB, histB,
+          T('Collection status', ['Measure', 'Value'], [['Responses received', D.N], ['Removed automatically: same answer to every scaled item', c.straight], ['Flagged: incomplete', c.incomplete], ['Flagged: duplicate', c.duplicate], ['Flagged: finished too fast', c.fast],
+            ['Flagged responses ' + (ex ? 'excluded by the researcher' : 'kept in the analyses'), c.flagged], ['Valid responses used in the analyses', N], ['Target (valid)', 50], ['Progress to target', 100 * N / 50],
+            ['Last response received', last ? last.toISOString().replace('T', ' ').slice(0, 16) + ' UTC' : '–']], { fmt: ['text', 'x'], fmtRows: { 8: 'pct' } }),
+          flowB,
+          T('Flagged responses for review', ['Row in the Sheet', 'Submitted (UTC)', 'Seconds', 'Flag', 'Status'], fl.length ? fl : [['–', 'No flagged responses', '', '', '']], { fmt: ['text', 'text', 'text', 'text', 'text'] }),
+          lineB, histB,
           B('Progress to the sample target, and the age mix', [{ label: 'All valid responses (target 50)', value: Math.min(100, 100 * N / 50), text: N + ' of 50' }].concat(E.ageNames.map((nm, i) => ({ label: 'Age ' + nm + ', share of valid responses', value: E.pct(nb[i], N), text: nb[i] + ' (' + (N ? (100 * nb[i] / N).toFixed(0) : 0) + '%)' }))), { max: 100, unit: '%' }),
           T('Time to complete (valid responses)', ['Measure', 'Seconds', 'Minutes'], [['Median', S.median(tms), S.median(tms) / 60], ['25th percentile', S.percentile(tms, 25), S.percentile(tms, 25) / 60], ['75th percentile', S.percentile(tms, 75), S.percentile(tms, 75) / 60],
             ['Mean', S.mean(tms), S.mean(tms) / 60], ['Shortest', Math.min(...tms), Math.min(...tms) / 60], ['Longest', Math.max(...tms), Math.max(...tms) / 60]], { fmt: ['text', 'n', 'd1'] }),
@@ -1098,7 +1112,7 @@ svg.sc text{font-family:var(--font)}
   const CB = window.KAMANG_CODEBOOK, DEMO = window.KAMANG_DEMO, E = window.KEngine, M = window.KModules;
   const $ = s => document.querySelector(s);
   const esc = s => String(s === null || s === undefined ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const st = { demo: false, token: null, user: null, role: null, data: null, res: null, D: null, auto: true, timer: null, tick: 0, opts: { apply: true, speedFrac: 0.33, speedMin: 240 }, collectionOpen: true, consentCount: 0, fetched: null, busy: false };
+  const st = { demo: false, token: null, user: null, role: null, data: null, res: null, D: null, auto: true, timer: null, tick: 0, opts: { apply: true, excludeFlagged: false, speedFrac: 0.33, speedMin: 240 }, collectionOpen: true, consentCount: 0, fetched: null, busy: false };
   const REFRESH_SECS = 60;
   let tableNo = 0;
 
@@ -1323,7 +1337,7 @@ svg.sc text{font-family:var(--font)}
     $('#demobar').classList.toggle('hidden', !st.demo);
     $('#btn-admin').classList.toggle('hidden', st.demo || st.role !== 'admin');
     const lastIso = res.modules[0].blocks[0].rows.find(r => r[0] === 'Last response received');
-    const kp = [[N, 'valid responses'], [Math.round(100 * N / 50) + '%', 'of the 50 target', Math.min(100, 100 * N / 50)], [E.byAge(cl.valid).map(b => b.length).join(' / '), 'by age band (10–13 / 14–16 / 17–19)'], [st.consentCount, 'parent consents recorded (count only)'], [(cl.counts.fast + cl.counts.duplicate + cl.counts.straight + cl.counts.incomplete), 'removed by cleaning']];
+    const kp = [[N, 'valid responses'], [Math.round(100 * N / 50) + '%', 'of the 50 target', Math.min(100, 100 * N / 50)], [E.byAge(cl.valid).map(b => b.length).join(' / '), 'by age band (10–13 / 14–16 / 17–19)'], [st.consentCount, 'parent consents recorded (count only)'], [cl.counts.straight + ' / ' + cl.counts.flagged, 'removed (same answer) / flagged for review']];
     let html = '<div class="printhead"><h1>KAMANG Teen Survey: results summary</h1><p>Restorative and Coherent Design: Basis for the Architectural Design of KAMANG, the Ilagan City Teen Center</p><p>' + (st.demo ? '<b>SYNTHETIC DATA FOR PREVIEW. NOT REAL RESPONSES. NOT FOR SUBMISSION.</b><br>' : '') + 'Generated ' + new Date().toLocaleString() + ' · ' + N + ' valid of ' + st.D.N + ' responses · ' + (lastIso ? 'last response ' + esc(lastIso[1]) : '') + '</p></div>';
     html += '<div class="kpis noprint">' + kp.map(k => '<div class="kpi"><b>' + esc(k[0]) + '</b><span>' + esc(k[1]) + '</span>' + (k[2] !== undefined ? '<i class="kbar"><i style="width:' + k[2] + '%"></i></i>' : '') + '</div>').join('') + '</div>';
     html += '<section class="card insights-card" id="m-insights"><h2><span class="num">★</span>Key insights</h2><p class="rq">Computed from the current responses</p><ol class="insights">' + res.insights.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol><div class="tnote">Insights are computed automatically from the analyses below. Read each against its n and its caveats before using it in the thesis.</div></section>';
@@ -1352,11 +1366,12 @@ svg.sc text{font-family:var(--font)}
   // ------------------------------------------------------------------------------------------ dialogs
   function modal(inner) { const d = document.createElement('div'); d.className = 'modal'; d.innerHTML = '<div class="mbox">' + inner + '</div>'; d.addEventListener('click', e => { if (e.target === d) d.remove(); }); document.body.appendChild(d); return d; }
   function settingsDialog() {
-    const d = modal('<h3>Analysis settings</h3><div class="field"><label><input type="checkbox" id="s-apply"' + (st.opts.apply ? ' checked' : '') + '> Apply the cleaning rules of Section 3.6 (recommended)</label></div>'
-      + '<div class="field"><label for="s-frac">Too-fast threshold, as a fraction of the median time (minimum 240 s)</label><input id="s-frac" type="number" min="0.1" max="0.8" step="0.05" value="' + st.opts.speedFrac + '"></div>'
-      + '<p class="tnote">Chapter 3 sets the minimum time as the larger of 240 seconds and a fraction of the median completion time (one third by default).</p><div class="mrow"><button class="btn" id="s-ok">Apply</button><button class="btn ghost" id="s-x">Close</button></div>');
+    const d = modal('<h3>Analysis settings</h3><div class="field"><label><input type="checkbox" id="s-apply"' + (st.opts.apply ? ' checked' : '') + '> Remove responses that give the same answer to every scaled item (Section 3.6, recommended)</label></div>'
+      + '<div class="field"><label><input type="checkbox" id="s-flag"' + (st.opts.excludeFlagged ? ' checked' : '') + '> Also exclude the flagged responses (incomplete, duplicate, too fast). Off by default: they are kept and listed for review.</label></div>'
+      + '<div class="field"><label for="s-frac">Too-fast flag, as a fraction of the median time (minimum 240 s)</label><input id="s-frac" type="number" min="0.1" max="0.8" step="0.05" value="' + st.opts.speedFrac + '"></div>'
+      + '<p class="tnote">Chapter 3 sets the too-fast flag at the larger of 240 seconds and a fraction of the median completion time (one third by default). Flagged responses are never removed automatically.</p><div class="mrow"><button class="btn" id="s-ok">Apply</button><button class="btn ghost" id="s-x">Close</button></div>');
     d.querySelector('#s-x').onclick = () => d.remove();
-    d.querySelector('#s-ok').onclick = () => { st.opts.apply = d.querySelector('#s-apply').checked; st.opts.speedFrac = Number(d.querySelector('#s-frac').value) || 0.33; d.remove(); recompute(); };
+    d.querySelector('#s-ok').onclick = () => { st.opts.apply = d.querySelector('#s-apply').checked; st.opts.excludeFlagged = d.querySelector('#s-flag').checked; st.opts.speedFrac = Number(d.querySelector('#s-frac').value) || 0.33; d.remove(); recompute(); };
   }
   async function adminDialog() {
     const d = modal('<h3>Administration</h3><div id="adm">Loading…</div>'); const box = d.querySelector('#adm');
@@ -1436,9 +1451,10 @@ svg.sc text{font-family:var(--font)}
     let ws = wb.addWorksheet('README');
     [['KAMANG Teen Survey: response summary and coded data'], ['Restorative and Coherent Design: Basis for the Architectural Design of KAMANG, the Ilagan City Teen Center'], [''],
       [st.demo ? 'SYNTHETIC DATA FOR PREVIEW. NOT REAL RESPONSES. DO NOT SUBMIT.' : 'Real responses'], ['Generated', new Date().toLocaleString()], ['Responses received', st.D.N], ['Valid responses analysed', res.N],
-      ['Removed: incomplete / duplicate / too fast / same answer', [cl.counts.incomplete, cl.counts.duplicate, cl.counts.fast, cl.counts.straight].join(' / ')], [''],
+      ['Removed automatically: same answer to every scaled item', cl.counts.straight],
+      ['Flagged incomplete / duplicate / too fast (' + (cl.opts.excludeFlagged ? 'excluded by the researcher' : 'kept') + ')', [cl.counts.incomplete, cl.counts.duplicate, cl.counts.fast].join(' / ')], [''],
       ['Sheets'], ['Codebook', 'Every variable: question, type, objective, design considerations, codes and the rule for being asked'], ['Coded data', 'One row per valid respondent; numeric codes; multiple-answer questions as 0/1 columns; blank = not asked or skipped'],
-      ['Labeled data', 'The same rows with the answer words'], ['Cleaning log', 'Every response received and the rule that removed it, if any'], ['1 … 16 sheets', 'One sheet of tables per analysis, with its intent, formula and tables'], ['Open responses', 'Wish and suggestion texts with automatic theme codes and a blank column for your own code'], [''],
+      ['Labeled data', 'The same rows with the answer words'], ['Cleaning log', 'Every response received, its flags, and whether it was kept or removed'], ['1 … 16 sheets', 'One sheet of tables per analysis, with its intent, formula and tables'], ['Open responses', 'Wish and suggestion texts with automatic theme codes and a blank column for your own code'], [''],
       ['Reading notes', 'Follow-up questions are asked only after the answer that calls for them, so their n is smaller than the number of valid responses. Subgroups under 10 are not reported. Inferential tests are corrected for many comparisons; the sample is non-probability, so results are carried to Ilagan teens with caution.']].forEach(r => ws.addRow(r));
     ws.getRow(1).font = { bold: true, size: 16, name: 'Times New Roman' }; ws.getColumn(1).width = 52; ws.getColumn(2).width = 110;
     ws = wb.addWorksheet('Codebook'); ws.addRow(['Variable', 'Question (English)', 'Type', 'Part', 'Research objective', 'Design consideration', 'Codes', 'Who is asked']); styleHead(ws.getRow(1));
@@ -1446,8 +1462,9 @@ svg.sc text{font-family:var(--font)}
     const ct = codedTables();
     ws = wb.addWorksheet('Coded data'); ws.addRow(ct.head); styleHead(ws.getRow(1)); ct.rows.forEach(r => ws.addRow(r)); ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
     ws = wb.addWorksheet('Labeled data'); ws.addRow(ct.lhead); styleHead(ws.getRow(1)); ct.lrows.forEach(r => ws.addRow(r)); ws.views = [{ state: 'frozen', xSplit: 1, ySplit: 1 }];
-    ws = wb.addWorksheet('Cleaning log'); ws.addRow(['Row in the Sheet', 'Submitted', 'Age group', 'Seconds', 'Rule that removed it']); styleHead(ws.getRow(1));
-    st.D.R.forEach(r => ws.addRow([r.idx + 2, r.submitted ? r.submitted.toISOString().slice(0, 19).replace('T', ' ') : '', r.ageBand || '', r.totalSecs === undefined ? '' : r.totalSecs, r.flags.join(', ') || (cl.valid.includes(r) ? 'kept' : 'kept (rules switched off)')])); widths(ws, [16, 22, 12, 10, 40]);
+    ws = wb.addWorksheet('Cleaning log'); ws.addRow(['Row in the Sheet', 'Submitted', 'Age group', 'Seconds', 'Flags', 'Status']); styleHead(ws.getRow(1));
+    st.D.R.forEach(r => ws.addRow([r.idx + 2, r.submitted ? r.submitted.toISOString().slice(0, 19).replace('T', ' ') : '', r.ageBand || '', r.totalSecs === undefined ? '' : r.totalSecs,
+      r.flags.map(f => f === 'straight' ? 'same answer throughout' : f === 'fast' ? 'too fast' : f).join(', '), cl.valid.includes(r) ? 'kept' : 'removed'])); widths(ws, [16, 22, 12, 10, 40, 12]);
     // one sheet per analysis
     let tno = 0;
     res.modules.forEach((m, mi) => {
