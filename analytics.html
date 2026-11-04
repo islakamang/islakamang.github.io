@@ -764,22 +764,27 @@ svg.sc text{font-family:var(--font)}
     // ---------------------------------------------------------------------------------------------- 10 build game
     let game = {};
     {
-      const games = cb.items.filter(i => i.kind === 'game'); const players = valid.filter(r => !r.gameSkipped && Object.keys(r.g).length);
+      const games = cb.items.filter(i => i.kind === 'game'); const purse = (D.cb && D.cb.purse) || 60;
+      const spent = r => S.sum(games.map(g => (r.g[g.id] === 1 ? g.cost : 0)));
+      const played = r => !r.gameSkipped && Object.keys(r.g).length > 0;
+      // a digital glitch let some players spend more than the purse; their coin games are left out of the coin statistics only
+      const isPlayer = r => played(r) && spent(r) <= purse;
+      const players = valid.filter(isPlayer), overSpent = valid.filter(r => played(r) && spent(r) > purse).length;
       const gn = players.length;
       const per = games.map(g => { const k = players.filter(r => r.g[g.id] === 1).length, w = S.wilson(k, gn); return { id: g.id, name: g.q[0], tier: g.tier, cost: g.cost, k, pct: E.pct(k, gn), ci: [100 * w.lo, 100 * w.hi], coins: gn ? g.cost * k / gn : NaN }; });
       ['Big spaces', 'Rooms', 'Details'].forEach((nm, t) => { const sub = per.filter(p => p.tier === t).sort((a, b) => b.pct - a.pct); { const rk = E.ranks(sub.map(p => p.pct), 1e-6); sub.forEach((p, i) => p.rank = rk[i]); } });
       const tierTot = [0, 1, 2].map(t => S.mean(players.map(r => S.sum(games.filter(g => g.tier === t).map(g => (r.g[g.id] === 1 ? g.cost : 0))))));
-      const tierPer = [0, 1, 2].map(t => bands.map(b => { const pl = b.filter(r => !r.gameSkipped && Object.keys(r.g).length); return pl.length >= MIN_N ? S.mean(pl.map(r => S.sum(games.filter(g => g.tier === t).map(g => (r.g[g.id] === 1 ? g.cost : 0))))) : NaN; }));
-      const tierKW = [0, 1, 2].map(t => S.kruskal(bands.map(b => b.filter(r => !r.gameSkipped && Object.keys(r.g).length).map(r => S.sum(games.filter(g => g.tier === t).map(g => (r.g[g.id] === 1 ? g.cost : 0)))))));
+      const tierPer = [0, 1, 2].map(t => bands.map(b => { const pl = b.filter(isPlayer); return pl.length >= MIN_N ? S.mean(pl.map(r => S.sum(games.filter(g => g.tier === t).map(g => (r.g[g.id] === 1 ? g.cost : 0))))) : NaN; }));
+      const tierKW = [0, 1, 2].map(t => S.kruskal(bands.map(b => b.filter(isPlayer).map(r => S.sum(games.filter(g => g.tier === t).map(g => (r.g[g.id] === 1 ? g.cost : 0)))))));
       const tierAdj = S.holm(tierKW.map(k => (k ? k.p : NaN)));
-      const itemAge = per.map(p => { const t = bands.map(b => { const pl = b.filter(r => !r.gameSkipped && Object.keys(r.g).length); const k = pl.filter(r => r.g[p.id] === 1).length; return [k, pl.length - k]; }); const cs = S.chiSquare(t); return cs ? cs.p : NaN; });
+      const itemAge = per.map(p => { const t = bands.map(b => { const pl = b.filter(isPlayer); const k = pl.filter(r => r.g[p.id] === 1).length; return [k, pl.length - k]; }); const cs = S.chiSquare(t); return cs ? cs.p : NaN; });
       const iAdj = S.holm(itemAge);
-      game = { per, gn };
+      game = { per, gn, isPlayer };
       const names = ['Big spaces (4 coins each)', 'Rooms (2 coins each)', 'Details (1 coin each)'];
-      const blocks = [T('Coin game: who played', ['Measure', 'Value'], [['Played the coin game', gn], ['Skipped it', valid.length - gn], ['Mean coins spent', S.mean(players.map(r => r.gameCoins).filter(x => x !== undefined))]], { fmt: ['text', 'x'] }),
+      const blocks = [T('Coin game: who played', ['Measure', 'Value'], [['Played the coin game (spent ' + purse + ' coins or fewer)', gn], ['Skipped it', valid.filter(r => !played(r)).length], ['Left out: spent more than ' + purse + ' coins (game glitch)', overSpent], ['Mean coins spent', S.mean(players.map(spent))]], { fmt: ['text', 'x'] }),
         T('Coins spent on each tier (mean per player) with age-band comparison', ['Tier', 'Mean coins', '10–13', '14–16', '17–19', 'H', 'p', 'Holm p'], names.map((nm, t) => [nm, tierTot[t]].concat(tierPer[t], [tierKW[t] ? tierKW[t].H : NaN, tierKW[t] ? tierKW[t].p : NaN, tierAdj[t]])), { fmt: ['text', 'd1', 'd1', 'd1', 'd1', 'd2', 'p', 'p'] }),
         ST('How the coins are split across the three tiers, % of the coins spent', ['Big spaces', 'Rooms', 'Details'],
-          [{ label: 'All players', n: gn, segs: (s => [0, 1, 2].map(t => 100 * tierTot[t] / s))(S.sum(tierTot)) }].concat(E.ageNames.map((nm, b) => ({ label: 'Age ' + nm, n: bands[b].filter(r => !r.gameSkipped && Object.keys(r.g).length).length, segs: (s => [0, 1, 2].map(t => 100 * tierPer[t][b] / s))(tierPer[0][b] + tierPer[1][b] + tierPer[2][b]) })).filter(x => x.segs.every(isFinite))))];
+          [{ label: 'All players', n: gn, segs: (s => [0, 1, 2].map(t => 100 * tierTot[t] / s))(S.sum(tierTot)) }].concat(E.ageNames.map((nm, b) => ({ label: 'Age ' + nm, n: bands[b].filter(isPlayer).length, segs: (s => [0, 1, 2].map(t => 100 * tierPer[t][b] / s))(tierPer[0][b] + tierPer[1][b] + tierPer[2][b]) })).filter(x => x.segs.every(isFinite))))];
       [0, 1, 2].forEach(t => {
         const sub = per.filter(p => p.tier === t).sort((a, b) => b.pct - a.pct);
         blocks.push(B(names[t] + ': % of players who bought it, 95% CI', sub.slice(0, 14).map(p => ({ label: E.short(p.name, 50), value: p.pct, lo: p.ci[0], hi: p.ci[1], text: p.pct.toFixed(1) + '%' })), { max: Math.max(10, Math.ceil(Math.max(...sub.map(p => p.ci[1]), 10) / 10) * 10), unit: '%' }));
@@ -863,7 +868,7 @@ svg.sc text{font-family:var(--font)}
       // the key findings, recomputed for any set of respondents
       const gapRank = set => need.map((r, k) => ({ k, v: set.length ? set.filter(x => x.a[r.id] >= minS && (x.a.NPp || []).includes(k)).length / set.length : 0 })).sort((a, b) => b.v - a.v);
       const tripleOf = (set, id) => { const c = [0, 0, 0, 0]; set.forEach(x => { const v = x.a[id]; if (v !== undefined && v >= 0 && v < 4) c[v]++; }); const ch = c.slice(0, 3), nch = S.sum(ch); if (!nch) return null; const top = ch.indexOf(Math.max(...ch)), gof = S.chiGOF(ch); return { c, top, share: ch[top] / nch, clear: !!(gof && gof.p < 0.05 && ch[top] / nch >= 0.45) }; };
-      const gameRank = (set, t) => { const pl = set.filter(r => !r.gameSkipped && Object.keys(r.g).length); const its = cb.items.filter(i => i.kind === 'game' && i.tier === t); return { n: pl.length, order: its.map(i => ({ i, v: pl.filter(r => r.g[i.id] === 1).length })).sort((a, b) => b.v - a.v).map(x => x.i) }; };
+      const gameRank = (set, t) => { const pl = set.filter(game.isPlayer); const its = cb.items.filter(i => i.kind === 'game' && i.tier === t); return { n: pl.length, order: its.map(i => ({ i, v: pl.filter(r => r.g[i.id] === 1).length })).sort((a, b) => b.v - a.v).map(x => x.i) }; };
       if (!N) { chk.status = 'empty'; blocks.push(E.note('No valid responses yet.')); }
       else if (!away.length) { chk.status = 'all-ilagan'; blocks.push(E.note('Every valid respondent so far lives in the City of Ilagan, so the results in every other analysis are already the Ilagan results.')); }
       else if (ilg.length < MIN_N) { chk.status = 'few'; blocks.push(E.note('Fewer than ' + MIN_N + ' Ilagan residents so far (' + ilg.length + '). The side-by-side check appears once there are ' + MIN_N + '.')); }
