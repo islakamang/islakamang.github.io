@@ -7773,7 +7773,7 @@ function reportHTML(p) {
   const res = RES, S = stats(st, res), P = [], sec = p.sec;
   const date = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
   if (sec.cover) {
-    P.push('<div class="cover"><div class="ck">KAMANG Design Studio</div><h1>Design Decision Record</h1><div class="sub">Restorative and Coherent Design: Basis for the Architectural Design of KAMANG, the Ilagan City Teen Center</div>' +
+    P.push('<div class="cover"><div class="ck">KAMANG Design Studio</div><h1>Design Decision Record</h1><div class="sub">KAMANG: A Citywide Teen Center for Ilagan City Designed on Restorative and Coherent Pillars</div>' +
       '<p><b>Designer:</b> ' + esc(st.designer || '(name not entered)') + (st.role ? ' &nbsp;|&nbsp; <b>Role:</b> ' + esc(st.role) : '') + ' &nbsp;|&nbsp; <b>Date:</b> ' + date + '</p>' +
       '<p class="sub">The evidence of Chapters 1 to 4 is final. The draft Chapters 5 and 6 are proposals. This record shows what this designer adopted, adapted, set aside, and added, and why.</p>');
     P.push(tbl(['At a glance', ''], [['Findings pinned', S.pins], ['Criteria written', S.crit], ['Draft spaces', S.dec.adopt + ' adopted, ' + S.dec.adapt + ' adapted, ' + S.dec.defer + ' deferred, ' + S.dec.skip + ' set aside, ' + S.dec.pending + ' not decided'],
