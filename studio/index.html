@@ -6431,6 +6431,38 @@ function probes(scope, ans, ctx, extraPils) {
 }
 
 'use strict';
+/* The numbers the design software needs to draw complex forms: roof lift, fold, pitch, and rise; tower height, twist, and shape;
+   and a building's footprint. Spliced into the spec right after the questions they refine. */
+const isHusk = v => /husk/i.test(v || ''), isPitch = v => /pitched|hip/i.test(v || ''), isCurve = v => /shell|butterfly/i.test(v || '');
+function formQs(prefix, formOf) {
+  const p = prefix;
+  return [
+    Q(p + 'lift', 'Roof', 'How far do the roof ends lift above the middle? (m)', 'num', { unit: 'm', when: (c, a) => isHusk(formOf(c, a)), hint: [['draft', 'Test pavilion: ends lift 2.4 m, fold 1.2 m deep, 1.8 m overhang.']], why: 'The software lofts the roof through sections; this sets how much it curls up at the ends.' }),
+    Q(p + 'fold', 'Roof', 'How deep is the fold along the ridge? (m)', 'num', { unit: 'm', when: (c, a) => isHusk(formOf(c, a)) }),
+    Q(p + 'pitch', 'Roof', 'What is the roof pitch? (degrees)', 'num', { unit: 'degrees', when: (c, a) => isPitch(formOf(c, a)), hint: [['ev', 'Site: 1,804 mm of rain a year and typhoon winds; steeper sheds rain faster, flatter catches less wind.']] }),
+    Q(p + 'rise', 'Roof', 'How high does the curve rise? (m)', 'num', { unit: 'm', when: (c, a) => isCurve(formOf(c, a)), hint: [['draft', 'Commons shell: a 14.4 m span rising 3.0 m.']] }),
+  ];
+}
+const FORM_CENTER = formQs('roof_', (c, a) => a.roof_family).concat([
+  Q('tower_shape', 'Massing', 'What shape is the tower in plan, and does it twist?', 'choice', { when: (c, a) => a.landmark === 'A slender tower', opts: op([D_('A square that rotates as it rises'), 'A square, no twist', 'A circle', 'A triangle that rotates as it rises']) }),
+  Q('tower_twist', 'Massing', 'How much does it twist from bottom to top? (degrees)', 'num', { unit: 'degrees', when: (c, a) => /rotates/.test(a.tower_shape || '') || (a.landmark === 'A slender tower' && !a.tower_shape), hint: [['draft', 'Test tower: 45 degrees over 30 m, a 6 m square tapering to 4.8 m.']] }),
+  Q('tower_base', 'Massing', 'How wide is the tower at the bottom and at the top? (m, bottom)', 'num', { unit: 'm', when: (c, a) => a.landmark === 'A slender tower' }),
+  Q('tower_top', 'Massing', 'And at the top? (m)', 'num', { unit: 'm', when: (c, a) => a.landmark === 'A slender tower' }),
+]);
+const FORM_VOL = formQs('b_', (c, a) => a.b_roof_same === 'No, its own roof' ? a.b_roof_form : (typeof st !== 'undefined' && st && st.char ? st.char.roof_family : '')).concat([
+  Q('b_len', 'Floors', 'Footprint length (m), if you want to fix it', 'num', { unit: 'm', when: c => c.vol && c.vol.kind !== 'outdoor', why: 'Leave blank and the software sizes it from the rooms on the busiest floor, on the 7.2 m bay.' }),
+  Q('b_dep', 'Floors', 'Footprint depth (m), if you want to fix it', 'num', { unit: 'm', when: c => c.vol && c.vol.kind !== 'outdoor', hint: [['draft', 'Rooms one 7.2 m bay deep, so breezes cross them.']] }),
+]);
+(function splice() {
+  const at = (L, id) => { const i = L.findIndex(q => q.id === id); return i < 0 ? L.length : i + 1; };
+  SPEC.center.splice(at(SPEC.center, 'roof_family'), 0, ...FORM_CENTER.filter(q => /^roof_/.test(q.id)));
+  SPEC.center.splice(at(SPEC.center, 'landmark'), 0, ...FORM_CENTER.filter(q => /^tower_/.test(q.id)));
+  SPEC.vol.splice(at(SPEC.vol, 'b_roof_same'), 0, ...FORM_VOL.filter(q => /^b_(lift|fold|pitch|rise)$/.test(q.id)));
+  SPEC.vol.splice(at(SPEC.vol, 'clear_h'), 0, ...FORM_VOL.filter(q => /^b_(len|dep)$/.test(q.id)));
+  [].concat(FORM_CENTER, FORM_VOL).forEach(q => { if (!q.pr) q.pr = ELEM_PR[q.elem] || []; });
+})();
+
+'use strict';
 /* The master builder's own ideas: for each option, what it is (d) and what the builder weighs when building it (n).
    Options marked draft come from the team's draft Chapters 5 and 6; the others are the builder's own suggestions. All are offered so the
    designer can think aloud, pick one, change it, or write something else. Keyed by option label. */
@@ -6881,7 +6913,7 @@ if (typeof module !== 'undefined') module.exports = { specStatus, SPEC, vphase, 
 /* KAMANG Design Studio: the interface. Part A: helpers, state, coach, Start, Evidence, Criteria. */
 'use strict';
 const KEY = 'kamangStudio2';
-const STEPS = [['start', 'Start'], ['evidence', '1 Evidence'], ['concept', '2 Concept and vibe'], ['criteria', '3 My criteria'], ['program', '4 Program'], ['adjacency', '5 Adjacency'], ['floors', '6 Floors and zones'], ['specify', '7 Specify the build'], ['check', '8 Check'], ['record', '9 Print and export'], ['team', 'Team view']];
+const STEPS = [['start', 'Start'], ['evidence', '1 Evidence'], ['concept', '2 Concept and vibe'], ['criteria', '3 My criteria'], ['program', '4 Program'], ['adjacency', '5 Adjacency'], ['floors', '6 Floors and zones'], ['specify', '7 Specify the build'], ['build', '8 Build in software'], ['check', '9 Check'], ['record', '10 Print and export'], ['team', 'Team view']];
 const DONE_KEY = { evidence: 'evidence', concept: 'concept', criteria: 'criteria', program: 'program', adjacency: 'adjacency', floors: 'floors', specify: 'specify' };
 let st = load();
 const view = { spec: null, area: 'A1', grp: 'RP1', tag: 'All', q: '', open: {}, sel: null, evPick: null, addOpen: false, ruleForm: { a: '', b: '', t: 'near' }, evScope: 'grp' };
@@ -6941,7 +6973,7 @@ function render() {
   RES = check(st);
   renderSteps();
   const m = $('#main'); m.innerHTML = '';
-  const fn = { start: viewStart, evidence: viewEvidence, concept: viewConcept, criteria: viewCriteria, program: viewProgram, adjacency: viewAdjacency, floors: viewFloors, specify: viewSpecify, check: viewCheck, record: viewRecord, team: viewTeam }[STEPS[st.step][0]];
+  const fn = { start: viewStart, evidence: viewEvidence, concept: viewConcept, criteria: viewCriteria, program: viewProgram, adjacency: viewAdjacency, floors: viewFloors, specify: viewSpecify, build: viewBuild, check: viewCheck, record: viewRecord, team: viewTeam }[STEPS[st.step][0]];
   m.append(fn());
   renderCoach();
   window.scrollTo(0, y);
@@ -8020,6 +8052,314 @@ async function liveLoadAll() {
 }
 function liveAuto() { clearInterval(view.liveTimer); if (view.live && view.live.auto) view.liveTimer = setInterval(() => { if (STEPS[st.step][0] === 'team') liveRefresh(true); }, 60000); }
 
+/* Part H: Build it in software. Turns the designer's decisions into one design file (kamang_design.json) and into scripts that draw
+   the design in Revit (through Dynamo), Rhino (curves, roofs, shells, the twisting tower), and AutoCAD (the site plan). The Studio says
+   which app to use for each part and coaches the designer step by step. Placement on the site is schematic, by zone. */
+var SITE_W = 240, SITE_D = 102.5;
+var ZONE_POS = { A: [22, 52], P: [22, 92], G: [52, 18], B: [100, 52], C: [118, 18], D: [112, 86], H: [150, 95], E: [190, 80], F: [220, 45] };
+function n_(v, d) { const x = parseFloat(String(v == null ? '' : v).replace(/[^\d.\-]/g, '')); return isNaN(x) ? d : x; }
+function roofKind(label) {
+  const s = (label || '').toLowerCase();
+  if (/husk/.test(s)) return 'husk'; if (/shell/.test(s)) return 'shell'; if (/butterfly/.test(s)) return 'butterfly';
+  if (/hip/.test(s)) return 'hip'; if (/pitched/.test(s)) return 'gable'; if (/flat/.test(s)) return 'flat'; if (/long-span|low-pitched/.test(s)) return 'lowpitch';
+  return 'husk';
+}
+function buildDesign() {
+  const eff = RES.eff, C = st.char || {};
+  const silong = n_(C.silong_h, 3.0), level1 = Math.round((silong + 0.5) * 10) / 10;
+  const centerRoof = C.roof_family || 'Folded husk roofs lifting at the ends';
+  const bldgs = [], used = {};
+  DATA.vols.filter(v => (v.kind === 'pavilion' || v.kind === 'tall') && eff.some(s => s.vol === v.id)).forEach(v => {
+    const A = st.vspec[v.id] || {}, rooms = eff.filter(s => s.vol === v.id);
+    const floors = v.kind === 'pavilion' ? floorsOf(st, v.id) : 1;
+    const f2f = v.kind === 'pavilion' ? n_(A.floor_h, 3.5) : 0;
+    let plate = 0; for (let l = 1; l <= floors; l++) plate = Math.max(plate, rooms.filter(s => s.lvl === String(l)).reduce((a, s) => a + gross(s), 0));
+    if (v.kind === 'tall') plate = rooms.reduce((a, s) => a + gross(s), 0);
+    let dep, len;
+    if (v.kind === 'pavilion') { dep = n_(A.b_dep, 7.2); len = n_(A.b_len, Math.max(2, Math.ceil(plate / (dep * 7.2))) * 7.2); }
+    else { const ratio = { court: 1.45, ccourt: 1.6, hall: 1.3, commons: 1.35 }[v.id] || 1.3; len = n_(A.b_len, Math.max(v.id === 'court' || v.id === 'ccourt' ? 32 : 14.4, Math.round(Math.sqrt(plate * ratio)))); dep = n_(A.b_dep, Math.max(v.id === 'court' || v.id === 'ccourt' ? 19 : 10.8, Math.round(plate / len))); }
+    const height = v.kind === 'pavilion' ? level1 + floors * f2f : n_(A.clear_h, { court: 9, ccourt: 9, hall: 12, commons: 19 }[v.id] || 9);
+    const form = A.b_roof_same === 'No, its own roof' ? (A.b_roof_form || centerRoof) : (v.id === 'commons' && /shell/i.test(C.landmark || '') ? 'Curved shell' : centerRoof);
+    const kind = roofKind(form);
+    const roof = { form, kind, overhang: n_(C.roof_over, 1.8), lift: n_(A.b_lift, n_(C.roof_lift, 2.4)), fold: n_(A.b_fold, n_(C.roof_fold, 1.2)), pitch: n_(A.b_pitch, n_(C.roof_pitch, 20)), rise: n_(A.b_rise, n_(C.roof_rise, 3.0)), thickness: 0.3, sections: 11 };
+    const z = v.zone; used[z] = (used[z] || 0);
+    const [cx, cy] = ZONE_POS[z] || [100, 50];
+    const ox = cx - len / 2 + used[z], oy = cy - dep / 2;
+    used[z] += len + 10;
+    bldgs.push({ id: v.id, name: v.name, zone: z, kind: v.kind, origin: [Math.round(ox * 10) / 10, Math.round(oy * 10) / 10], length: len, depth: dep, floors, floor_to_floor: f2f, level_1: v.kind === 'pavilion' ? level1 : 0, height: Math.round(height * 10) / 10,
+      silong: v.kind === 'pavilion', walls: { north_south: A.b_ns || C.ns || 'Glass curtain wall behind shading', east_west: A.b_ew || C.ew || 'Solid or screened ends', base: 0.9 }, roof, phase: vphase(st, v.id),
+      rooms: rooms.map(s => { const b = st.brief[s.id] || {}; return { name: s.name, area: s.area, level: s.lvl, net: s.net, people: s.ord, ceiling: n_(b.ceil_h, null), floor: b.floor || null, walls: b.walls || null, length: n_(b.len, null), width: n_(b.wid, null) }; }) });
+  });
+  const tower = C.landmark === 'A slender tower' ? { origin: [ZONE_POS.A[0] - 10, ZONE_POS.A[1] - 22], height: n_(C.tower_h, 30), base: n_(C.tower_base, 6), top: n_(C.tower_top, 4.8), twist: /no twist|circle/.test(C.tower_shape || '') ? 0 : n_(C.tower_twist, 45), shape: C.tower_shape || 'A square that rotates as it rises', skin: C.tower_skin || '', deck: (C.tower_holds || []).includes('A lookout deck'), sections: 12 } : null;
+  const outdoor = eff.filter(s => s.vol === 'outdoor' || s.vol === 'silong').map(s => ({ name: s.name, area: s.area, net: s.net, zone: s.zone || 'ALL' }));
+  return { _about: 'KAMANG design from the Design Studio. Metres. Placement on the site is schematic by zone; move buildings in the software.', designer: st.designer || '', made: new Date().toISOString(),
+    site: { width: SITE_W, depth: SITE_D, area: DATA.site.area, north: 'up (+y)', road: 'west (x = 0)' }, grid: { bay: n_(C.bay, 7.2) }, levels: { lot_grade: 0, working_flood: 1.0, silong_clear: silong, level_1: level1 },
+    buildings: bldgs, tower, outdoor, zones: DATA.zones };
+}
+function recommend(d) {
+  const R = [], curvy = d.buildings.some(b => ['husk', 'shell', 'butterfly'].includes(b.roof.kind)) || (d.tower && d.tower.twist);
+  R.push({ part: 'Site plan, zones, footprints, labels (2D)', app: 'AutoCAD', why: 'Fast, exact 2D drawing; the script draws the site, every footprint, and labels by zone.', file: 'KAMANG_site_plan.scr' });
+  if (curvy) R.push({ part: 'Curved and complex forms: ' + [d.buildings.some(b => b.roof.kind === 'husk') ? 'husk roofs' : '', d.buildings.some(b => b.roof.kind === 'shell') ? 'shell roofs' : '', d.buildings.some(b => b.roof.kind === 'butterfly') ? 'butterfly roofs' : '', d.tower && d.tower.twist ? 'the twisting tower' : ''].filter(Boolean).join(', '), app: 'Rhino (with Grasshopper later)', why: 'Rhino handles free curves and lofts best; refine them there, then bring them into Revit.', file: 'KAMANG_rhino_forms.py' });
+  R.push({ part: 'The building model: levels, floors, walls, roofs as masses, tower, rooms list', app: 'Revit (through Dynamo, built into Revit)', why: 'The model for plans, sections, schedules, and the thesis drawings; Dynamo runs the script with nothing to install.', file: 'KAMANG_revit_dynamo.py' });
+  R.push({ part: 'Room list with areas, levels, and finishes', app: 'Excel or Google Sheets', why: 'A schedule to check areas and hand to the team.', file: 'KAMANG_rooms.csv' });
+  return R;
+}
+/* ---------- Python helpers shared by the Rhino and Revit scripts: one roof profile per section ---------- */
+var PY_PROFILE = String.raw`
+def roof_section(kind, t, y0, y1, z0, r):
+    """Points (y, z) across one roof section at position t (0..1 along the length)."""
+    ym = (y0 + y1) / 2.0
+    if kind == 'husk':
+        lift = r['lift'] * (2 * t - 1) ** 2
+        return [(y0, z0 + lift), (ym, z0 + lift + r['fold']), (y1, z0 + lift)]
+    if kind in ('gable', 'hip', 'lowpitch'):
+        pitch = r['pitch'] if kind != 'lowpitch' else 5.0
+        rise = math.tan(math.radians(pitch)) * (y1 - y0) / 2.0
+        if kind == 'hip':
+            rise = rise * max(0.15, 1.0 - abs(2 * t - 1) ** 3)
+        return [(y0, z0), (ym, z0 + rise), (y1, z0)]
+    if kind == 'butterfly':
+        return [(y0, z0 + r['rise']), (ym, z0), (y1, z0 + r['rise'])]
+    if kind == 'shell':
+        pts = []
+        for i in range(9):
+            u = i / 8.0
+            pts.append((y0 + (y1 - y0) * u, z0 + r['rise'] * math.sin(math.pi * u)))
+        return pts
+    return [(y0, z0), (y1, z0)]
+`;
+function revitScript(d) {
+  return (String.raw`# KAMANG: build the design in Revit. Made by the KAMANG Design Studio for ` + (d.designer || 'a designer') + String.raw`.
+# Run it in Dynamo: Manage tab > Dynamo > New > add a "Python Script" node > paste this whole file > Run.
+# Works in IronPython 2.7 and CPython 3 (Revit 2022 or newer). Metres in, Revit feet out. Ctrl+Z in Revit undoes the run.
+import clr, json, math
+clr.AddReference('RevitAPI')
+clr.AddReference('RevitServices')
+import Autodesk.Revit.DB as DB
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+from System.Collections.Generic import List
+
+D = json.loads(r'''__DESIGN__''')
+doc = DocumentManager.Instance.CurrentDBDocument
+FT = 1.0 / 0.3048
+log = []
+
+def ft(m): return m * FT
+def xyz(x, y, z=0.0): return DB.XYZ(ft(x), ft(y), ft(z))
+def loop(points):
+    cl = DB.CurveLoop()
+    for i in range(len(points)):
+        cl.Append(DB.Line.CreateBound(xyz(*points[i]), xyz(*points[(i + 1) % len(points)])))
+    return cl
+def loops(items):
+    out = List[DB.CurveLoop]()
+    for c in items: out.Add(c)
+    return out
+def opts(): return DB.SolidOptions(DB.ElementId.InvalidElementId, DB.ElementId.InvalidElementId)
+def shape(solids, name, cat=DB.BuiltInCategory.OST_GenericModel):
+    g = List[DB.GeometryObject]()
+    for s in solids: g.Add(s)
+    cid = DB.ElementId(cat)
+    if not DB.DirectShape.IsValidCategoryId(cid, doc): cid = DB.ElementId(DB.BuiltInCategory.OST_GenericModel)
+    ds = DB.DirectShape.CreateElement(doc, cid)
+    ds.ApplicationId = 'KAMANG'; ds.ApplicationDataId = name; ds.SetShape(g)
+    try: ds.Name = name
+    except Exception: pass
+    return ds
+def level_at(elev, name):
+    for lv in DB.FilteredElementCollector(doc).OfClass(DB.Level):
+        if abs(lv.Elevation - ft(elev)) < 0.01: return lv
+    lv = DB.Level.Create(doc, ft(elev))
+    try: lv.Name = name
+    except Exception: lv.Name = name + ' (KAMANG)'
+    return lv
+def first_type(cls, test=None):
+    for t in DB.FilteredElementCollector(doc).OfClass(cls):
+        if test is None or test(t): return t
+    return None
+` + PY_PROFILE + String.raw`
+TransactionManager.Instance.EnsureInTransaction(doc)
+try:
+    ftype = doc.GetDefaultElementTypeId(DB.ElementTypeGroup.FloorType)
+    basic = first_type(DB.WallType, lambda t: t.Kind == DB.WallKind.Basic)
+    curtain = first_type(DB.WallType, lambda t: t.Kind == DB.WallKind.Curtain)
+    level_at(0.0, 'KAMANG Lot Grade')
+    if basic is None: log.append('No basic wall type in this project: walls skipped. Start from the Architectural template and run again.')
+    for b in D['buildings']:
+        ox, oy = b['origin']; L, W = b['length'], b['depth']
+        if b['kind'] == 'pavilion':
+            levels = [level_at(b['level_1'] + k * b['floor_to_floor'], 'KAMANG Level %d' % (k + 1)) for k in range(b['floors'])]
+            top = b['level_1'] + b['floors'] * b['floor_to_floor']
+            for lv in levels:
+                e = lv.Elevation * 0.3048
+                DB.Floor.Create(doc, loops([loop([(ox, oy, e), (ox + L, oy, e), (ox + L, oy + W, e), (ox, oy + W, e)])]), ftype, lv.Id)
+                glazed = 'glass' in b['walls']['north_south'].lower() or 'curtain' in b['walls']['north_south'].lower()
+                if basic is None:
+                    continue
+                for a, c in (((ox, oy), (ox, oy + W)), ((ox + L, oy), (ox + L, oy + W))):
+                    DB.Wall.Create(doc, DB.Line.CreateBound(xyz(*a), xyz(*c)), basic.Id, lv.Id, ft(b['floor_to_floor']), 0.0, False, False)
+                for a, c in (((ox, oy), (ox + L, oy)), ((ox, oy + W), (ox + L, oy + W))):
+                    wt = curtain if (glazed and curtain is not None) else basic
+                    DB.Wall.Create(doc, DB.Line.CreateBound(xyz(*a), xyz(*c)), wt.Id, lv.Id, ft(b['floor_to_floor'] - b['walls']['base']), ft(b['walls']['base']), False, False)
+            z0 = top + 0.6
+        else:
+            shape([DB.GeometryCreationUtilities.CreateExtrusionGeometry(loops([loop([(ox, oy, 0.0), (ox + L, oy, 0.0), (ox + L, oy + W, 0.0), (ox, oy + W, 0.0)])]), DB.XYZ.BasisZ, ft(b['height']))], 'KAMANG ' + b['name'] + ' volume', DB.BuiltInCategory.OST_Mass)
+            z0 = b['height']
+        r = b['roof']; y0, y1 = oy - r['overhang'], oy + W + r['overhang']
+        profs = []
+        for i in range(r['sections']):
+            t = i / float(r['sections'] - 1)
+            x = ox - r['overhang'] + (L + 2 * r['overhang']) * t
+            pts = roof_section(r['kind'], t, y0, y1, z0, r)
+            topl = [(x, y, z) for (y, z) in pts]
+            bot = [(x, y, z - r['thickness']) for (y, z) in reversed(pts)]
+            profs.append(loop(topl + bot))
+        try:
+            shape([DB.GeometryCreationUtilities.CreateLoftGeometry(loops(profs), opts())], 'KAMANG ' + b['name'] + ' roof', DB.BuiltInCategory.OST_Roofs)
+            log.append('%s: %s roof (%s)' % (b['name'], r['form'], r['kind']))
+        except Exception as e:
+            log.append('%s: roof skipped (%s)' % (b['name'], e))
+        log.append('%s: %.1f x %.1f m, %s' % (b['name'], L, W, ('%d floors' % b['floors']) if b['kind'] == 'pavilion' else ('%.1f m tall' % b['height'])))
+    T = D.get('tower')
+    if T:
+        ox, oy = T['origin']; secs = []
+        for i in range(T['sections'] + 1):
+            u = i / float(T['sections']); s = T['base'] + (T['top'] - T['base']) * u; a = math.radians(T['twist'] * u); z = T['height'] * u
+            pts = []
+            n = 3 if 'triangle' in T['shape'].lower() else (16 if 'circle' in T['shape'].lower() else 4)
+            for k in range(n):
+                ang = a + 2 * math.pi * k / n + math.pi / 4
+                pts.append((ox + s / 1.414 * math.cos(ang), oy + s / 1.414 * math.sin(ang), z))
+            secs.append(loop(pts))
+        shape([DB.GeometryCreationUtilities.CreateLoftGeometry(loops(secs), opts())], 'KAMANG tower')
+        log.append('Tower: %.0f m, twist %.0f degrees' % (T['height'], T['twist']))
+finally:
+    TransactionManager.Instance.TransactionTaskDone()
+OUT = '\n'.join(log)
+`).replace('__DESIGN__', () => asciiJson(d));
+}
+function rhinoScript(d) {
+  return (String.raw`# KAMANG: curves and complex forms in Rhino. Made by the KAMANG Design Studio for ` + (d.designer || 'a designer') + String.raw`.
+# Rhino 8: ScriptEditor > open this file > Run.  Rhino 7: EditPythonScript > open > Run (F5).  Model units: metres.
+import json, math
+import rhinoscriptsyntax as rs
+
+D = json.loads(r'''__DESIGN__''')
+` + PY_PROFILE + String.raw`
+def layer(name, color):
+    if not rs.IsLayer(name): rs.AddLayer(name, color)
+    rs.CurrentLayer(name)
+
+rs.EnableRedraw(False)
+layer('KAMANG-SITE', (120, 120, 120))
+rs.AddPolyline([(0, 0, 0), (D['site']['width'], 0, 0), (D['site']['width'], D['site']['depth'], 0), (0, D['site']['depth'], 0), (0, 0, 0)])
+for b in D['buildings']:
+    ox, oy = b['origin']; L, W = b['length'], b['depth']
+    layer('KAMANG-BUILDINGS', (60, 90, 160))
+    if b['kind'] == 'pavilion':
+        for k in range(b['floors']):
+            z = b['level_1'] + k * b['floor_to_floor']
+            rs.AddBox([(ox, oy, z), (ox + L, oy, z), (ox + L, oy + W, z), (ox, oy + W, z), (ox, oy, z + b['floor_to_floor']), (ox + L, oy, z + b['floor_to_floor']), (ox + L, oy + W, z + b['floor_to_floor']), (ox, oy + W, z + b['floor_to_floor'])])
+        z0 = b['level_1'] + b['floors'] * b['floor_to_floor'] + 0.6
+    else:
+        rs.AddBox([(ox, oy, 0), (ox + L, oy, 0), (ox + L, oy + W, 0), (ox, oy + W, 0), (ox, oy, b['height']), (ox + L, oy, b['height']), (ox + L, oy + W, b['height']), (ox, oy + W, b['height'])])
+        z0 = b['height']
+    layer('KAMANG-ROOFS', (170, 110, 40))
+    r = b['roof']; y0, y1 = oy - r['overhang'], oy + W + r['overhang']; curves = []
+    for i in range(r['sections']):
+        t = i / float(r['sections'] - 1); x = ox - r['overhang'] + (L + 2 * r['overhang']) * t
+        pts = [(x, y, z) for (y, z) in roof_section(r['kind'], t, y0, y1, z0, r)]
+        curves.append(rs.AddInterpCurve(pts) if r['kind'] == 'shell' else rs.AddPolyline(pts))
+    srf = rs.AddLoftSrf(curves)
+    rs.DeleteObjects(curves)
+    if srf: rs.ObjectName(srf, b['name'] + ' roof: ' + r['form'])
+    layer('KAMANG-LABELS', (0, 0, 0))
+    rs.AddText(b['name'], (ox, oy - 3, 0), 1.5)
+T = D.get('tower')
+if T:
+    layer('KAMANG-TOWER', (150, 60, 140)); ox, oy = T['origin']; secs = []
+    n = 3 if 'triangle' in T['shape'].lower() else (16 if 'circle' in T['shape'].lower() else 4)
+    for i in range(T['sections'] + 1):
+        u = i / float(T['sections']); s = T['base'] + (T['top'] - T['base']) * u; a = math.radians(T['twist'] * u); z = T['height'] * u
+        pts = [(ox + s / 1.414 * math.cos(a + 2 * math.pi * k / n + math.pi / 4), oy + s / 1.414 * math.sin(a + 2 * math.pi * k / n + math.pi / 4), z) for k in range(n)]
+        secs.append(rs.AddPolyline(pts + [pts[0]]))
+    tw = rs.AddLoftSrf(secs)
+    rs.DeleteObjects(secs)
+    if tw: rs.ObjectName(tw, 'KAMANG tower')
+rs.EnableRedraw(True)
+rs.ZoomExtents()
+print('KAMANG forms drawn: %d buildings%s.' % (len(D['buildings']), ' and the tower' if T else ''))
+`).replace('__DESIGN__', () => asciiJson(d));
+}
+function acadScript(d) {
+  const L = [];
+  const lay = (name, color) => { L.push('-LAYER', 'M', name, 'C', String(color), '', ''); };
+  const txt = (x, y, hgt, s) => { L.push('-TEXT', x.toFixed(2) + ',' + y.toFixed(2), String(hgt), '0', s.replace(/[^\x20-\x7E]/g, '')); };
+  L.push('-UNITS', '2', '2', '1', '4', '0', 'N', '');
+  L.push('OSMODE', '0');
+  lay('KAMANG-SITE', 8); L.push('RECTANG', '0,0', d.site.width + ',' + d.site.depth);
+  txt(2, d.site.depth + 2, 2.5, 'KAMANG site (schematic, ' + d.site.area + ' m2); road on the west, north up');
+  lay('KAMANG-ZONES', 4);
+  Object.entries(ZONE_POS).forEach(([z, [x, y]]) => txt(x - 6, y + 14, 1.8, 'Zone ' + z + ' ' + (d.zones[z] || '')));
+  lay('KAMANG-BUILDINGS', 5);
+  d.buildings.forEach(b => { const [ox, oy] = b.origin; L.push('RECTANG', ox.toFixed(2) + ',' + oy.toFixed(2), (ox + b.length).toFixed(2) + ',' + (oy + b.depth).toFixed(2)); });
+  lay('KAMANG-LABELS', 7);
+  d.buildings.forEach(b => { const [ox, oy] = b.origin; txt(ox + 0.5, oy + b.depth / 2, 1.2, b.name + (b.kind === 'pavilion' ? ' (' + b.floors + ' floors)' : ' (' + b.height + ' m)')); });
+  if (d.tower) { lay('KAMANG-TOWER', 6); const [tx, ty] = d.tower.origin; L.push('RECTANG', (tx - d.tower.base / 2).toFixed(2) + ',' + (ty - d.tower.base / 2).toFixed(2), (tx + d.tower.base / 2).toFixed(2) + ',' + (ty + d.tower.base / 2).toFixed(2)); txt(tx + 4, ty, 1.2, 'Tower ' + d.tower.height + ' m'); }
+  L.push('ZOOM', 'E');
+  return L.join('\r\n') + '\r\n';
+}
+function asciiJson(o) { return JSON.stringify(o).replace(/[\u007f-￿]/g, c => '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4)).replace(/'''/g, "' ''"); }
+function roomsCsv(d) {
+  const rows = [['Building', 'Room', 'Area', 'Level', 'Net m2', 'People', 'Ceiling m', 'Floor', 'Length m', 'Width m']];
+  d.buildings.forEach(b => b.rooms.forEach(r => rows.push([b.name, r.name, r.area, r.level, r.net, r.people, r.ceiling, r.floor, r.length, r.width])));
+  d.outdoor.forEach(r => rows.push(['Open ground', r.name, r.area, '', r.net, '', '', '', '', '']));
+  return '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+}
+/* ---------- the coach ---------- */
+var COACH = {
+  'AutoCAD': ['Open AutoCAD and start a new drawing (acadiso.dwt).', 'Type SCRIPT, press Enter, and choose KAMANG_site_plan.scr. (You can also drag the file into the drawing window.)', 'Wait for the commands to run; the drawing zooms to the site when done.',
+    'Check the layers: KAMANG-SITE, KAMANG-ZONES, KAMANG-BUILDINGS, KAMANG-LABELS, KAMANG-TOWER.', 'Move the footprints to their real places on the surveyed lot plan; the placement is schematic by zone.', 'If text comes out wrong, set the Standard text style height to 0 (STYLE command) and run the script again in a new drawing.'],
+  'Rhino (with Grasshopper later)': ['Open Rhino and start a new model with the "Large Objects - Meters" template.', 'Rhino 8: type ScriptEditor, open KAMANG_rhino_forms.py, and press Run. Rhino 7: type EditPythonScript, open the file, and press F5.',
+    'Look at the layers KAMANG-ROOFS and KAMANG-TOWER: these are your curved forms as surfaces.', 'Refine them: move control points, or rebuild them in Grasshopper with sliders for lift, fold, rise, and twist.', 'To take a form into Revit, select it and Export as .sat (or use Rhino.Inside.Revit), then in Revit use Insert > Import CAD or a Mass family.', 'Change a number in the Studio, download the script again, and rerun in a fresh file to compare versions.'],
+  'Revit (through Dynamo, built into Revit)': ['Open Revit (2022 or newer) and start a new project with the Architectural template in metric.', 'Go to Manage > Dynamo and create a new Dynamo file.', 'Double-click the canvas, search "Python Script", and place the node.',
+    'Open KAMANG_revit_dynamo.py in Notepad, copy everything, open the Python Script node (double-click or right-click > Edit), select all, paste, and close the editor.', 'Set Dynamo to Manual and press Run. Read the node\'s output: it lists every building it made.',
+    'Go back to Revit and open a 3D view: pavilions with floors and walls, tall volumes, roofs, and the tower appear. Ctrl+Z undoes the whole run.', 'If the node shows an error, copy its message into the Studio notes or send it to the team; the most common cause is a project without a curtain wall or floor type (load the Architectural template).',
+    'Next, replace the roof masses with real roofs, tag rooms from the room list, and set up plans and sections for the thesis drawings.'],
+  'Excel or Google Sheets': ['Open KAMANG_rooms.csv in Excel or Google Sheets.', 'Check that the areas add up to your program, and use it as the room schedule.'],
+};
+function viewBuild() {
+  const d = buildDesign(), R = recommend(d), r = h('div', {});
+  st.build = st.build || {};
+  r.append(h('h2', {}, 'Build it in software'), h('div', { class: 'notice' }, h('b', {}, 'I turn your decisions into files your design software can run. '), 'For each part I say which app suits it best and why, then coach you step by step. The design file holds every number; the scripts draw from it. Change a decision in the Studio and download again to get a new version.'));
+  // what will be built
+  const rows = d.buildings.map(b => h('tr', {}, h('td', {}, h('b', {}, b.name)), h('td', {}, b.kind === 'pavilion' ? b.floors + ' floors of ' + b.floor_to_floor + ' m over a ' + d.levels.silong_clear + ' m silong' : b.height + ' m tall volume'),
+    h('td', {}, b.length.toFixed(1) + ' x ' + b.depth.toFixed(1) + ' m'), h('td', {}, b.roof.form + (b.roof.kind === 'husk' ? ' (ends lift ' + b.roof.lift + ' m, fold ' + b.roof.fold + ' m)' : b.roof.kind === 'shell' || b.roof.kind === 'butterfly' ? ' (rise ' + b.roof.rise + ' m)' : b.roof.kind === 'gable' || b.roof.kind === 'hip' ? ' (pitch ' + b.roof.pitch + '°)' : '')),
+    h('td', {}, b.rooms.length + ' rooms')));
+  r.append(h('h3', {}, 'What I will build from your decisions'), d.buildings.length ? h('div', { style: 'overflow-x:auto' }, h('table', { class: 'tt' }, h('tr', {}, ['Building', 'Height', 'Footprint', 'Roof', 'Rooms'].map(x => h('th', {}, x))), rows)) : h('p', { class: 'mut' }, 'Adopt spaces in the Program step first; buildings appear once they hold rooms.'),
+    d.tower ? h('p', { class: 'small' }, h('b', {}, 'Tower: '), d.tower.height + ' m, ' + d.tower.base + ' m at the base to ' + d.tower.top + ' m at the top, twist ' + d.tower.twist + '° (' + d.tower.shape + ').') : null,
+    h('p', { class: 'small mut' }, 'Numbers you have not given use the draft values (floors 3.5 m apart, roof ends lifting 2.4 m, 1.8 m overhang). Footprints are sized from the rooms on the busiest floor, on the 7.2 m bay, unless you set them in Specify > Buildings. Placement is schematic by zone.'));
+  // which app
+  r.append(h('h3', {}, 'Which software for which part'), h('table', { class: 'tt' }, h('tr', {}, ['Part', 'Use', 'Why', 'File'].map(x => h('th', {}, x))), R.map(x => h('tr', {}, h('td', {}, x.part), h('td', {}, h('b', {}, x.app)), h('td', { class: 'small' }, x.why), h('td', { class: 'small' }, x.file)))));
+  // downloads
+  const files = { 'kamang_design.json': () => new Blob([JSON.stringify(d, null, 1)], { type: 'application/json' }), 'KAMANG_revit_dynamo.py': () => new Blob([revitScript(d)], { type: 'text/plain' }), 'KAMANG_rhino_forms.py': () => new Blob([rhinoScript(d)], { type: 'text/plain' }),
+    'KAMANG_site_plan.scr': () => new Blob([acadScript(d)], { type: 'text/plain' }), 'KAMANG_rooms.csv': () => new Blob([roomsCsv(d)], { type: 'text/csv' }) };
+  r.append(h('div', { class: 'card', style: 'border:2px solid var(--blue)' }, h('b', {}, 'Download the files'), h('div', { class: 'row', style: 'margin-top:6px' }, Object.entries(files).map(([n, f]) => btn(n, () => download(f(), n), n.endsWith('.json') ? 'pri' : ''))),
+    h('p', { class: 'small mut' }, 'Keep them together in one folder. The scripts already carry your design inside them, so each runs on its own.')));
+  // coach
+  r.append(h('h3', {}, 'Step by step'));
+  R.forEach(x => {
+    const steps = COACH[x.app] || [];
+    const done = steps.filter((s, i) => st.build[x.app + i]).length;
+    r.append(h('div', { class: 'card' }, h('div', { class: 'row' }, h('b', { class: 'grow' }, x.app + ': ' + x.part), h('span', { class: 'tag ' + (done === steps.length ? 'final' : '') }, done + ' of ' + steps.length + ' done')),
+      h('ol', { class: 'small', style: 'margin:6px 0 0 18px;padding:0' }, steps.map((s, i) => h('li', { style: 'margin:4px 0' }, h('label', { class: 'tk', style: 'white-space:normal' }, h('input', { type: 'checkbox', checked: !!st.build[x.app + i], onchange: ev => commit(() => { st.build[x.app + i] = ev.target.checked; }) }), ' ' + s))))));
+  });
+  r.append(h('div', { class: 'notice gold' }, h('b', {}, 'What these files do and do not do. '), 'They give you a fast, correct start: levels, footprints, floors, walls, roof and tower forms, and the room list from your decisions. They do not place doors, windows, stairs, or furniture, and the roofs and tall volumes come in as masses to refine. The site placement is schematic; fit it to the surveyed lot plan.'));
+  r.append(stepFoot('specify', 'On to the check', 'check', null));
+  return r;
+}
+
 /* Part C: Look and feel, Check, My record, fixes, boot. */
 
 /* ------------------------------------------------------------------ 2 Concept and vibe (the whole center) */
@@ -8081,7 +8421,7 @@ function viewSpecify() {
       r.append(specPanel('space', st.brief[s.id], { type: s.type, space: s }, s.name));
     }
   }
-  r.append(stepFoot('floors', 'On to the check', 'check', 'specify'));
+  r.append(stepFoot('floors', 'On to building it in software', 'build', 'specify'));
   return r;
 }
 
@@ -8135,7 +8475,7 @@ function viewCheck() {
   const cited = new Set(); st.crit.forEach(c => (c.ev || []).forEach(x => cited.add(x)));
   r.append(h('h3', {}, 'How much of the evidence your criteria use'));
   ['Survey', 'Site', 'Law', 'Theory', 'Precedent', 'Youth'].forEach(t => { const all = DATA.evidence.filter(e => e.tag === t), used = all.filter(e => cited.has(e.id)).length; r.append(h('div', { style: 'margin:4px 0;max-width:520px' }, h('div', { class: 'small' }, t + ': ' + used + ' of ' + all.length + ' findings cited'), h('div', { class: 'bar' }, h('i', { style: 'width:' + (all.length ? used / all.length * 100 : 0) + '%' })))); });
-  r.append(h('div', { class: 'foot' }, btn('Back', () => go('look')), btn('To my record', () => go('record'), 'pri')));
+  r.append(h('div', { class: 'foot' }, btn('Back', () => go('build')), btn('To my record', () => go('record'), 'pri')));
   return r;
 }
 function issueCard(i) {
