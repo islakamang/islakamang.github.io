@@ -7370,7 +7370,10 @@ function propCard(p) {
 /* Part B: Program, Adjacency, Floors and zones. */
 const NOISE_OF = { quiet: 'quiet', learning: 'quiet', support: 'quiet', staff: 'quiet', active: 'loud', creative: 'mid', digital: 'mid', social: 'mid', assembly: 'mid', outdoor: 'mid', service: 'mid' };
 const TYPE_LABEL = { social: 'Social', learning: 'Learning', quiet: 'Quiet', active: 'Active', creative: 'Creative', digital: 'Digital', assembly: 'Assembly', outdoor: 'Outdoor', support: 'Support', staff: 'Staff', service: 'Service' };
-const levelsFor = vid => { const v = VOL[vid]; if (!v) return ['O']; if (v.kind === 'pavilion') { const a = []; const n = floorsOf(st, vid); for (let i = 1; i <= n; i++) a.push(String(i)); if (vid === 'making') a.push('B1'); return a; } if (v.kind === 'tall') return ['T']; if (vid === 'silong') return ['G']; return ['O']; };
+const UNDER = ['hall', 'commons', 'court', 'making', 'quiet'];   // D264: the blocks that have an undercroft (B1) beneath them
+const lvKey = l => l === 'B1' ? -1 : l === 'T' ? 99 : /^\d+$/.test(l) ? +l : 0;
+const topDown = vid => levelsFor(vid).slice().sort((x, y) => lvKey(y) - lvKey(x));   // the undercroft is drawn below the ground floor
+const levelsFor = vid => { const v = VOL[vid]; if (!v) return ['O']; if (v.kind === 'pavilion') { const a = []; const n = floorsOf(st, vid); for (let i = 1; i <= n; i++) a.push(String(i)); if (UNDER.includes(vid)) a.push('B1'); return a; } if (v.kind === 'tall') return UNDER.includes(vid) ? ['T', 'B1'] : ['T']; if (vid === 'silong') return ['G']; return ['O']; };
 const lvlName = l => l === 'B1' ? 'Undercroft B1' : l === 'T' ? 'One tall volume' : l === 'O' ? 'Open ground' : l === 'G' ? 'Silong' : 'Floor ' + l;
 const lvlLow = l => l === 'B1' ? 'undercroft (B1)' : lvlName(l).toLowerCase();   // D264: a sentence-case level name that keeps B1
 const spById = id => RES.eff.find(s => s.id === id);
@@ -7701,7 +7704,7 @@ function viewFloors() {
   const shown = order.filter(v => RES.eff.some(s => s.vol === v) || true);
   const stack = h('div', { class: 'stack' });
   shown.forEach(vid => {
-    const v = VOL[vid], levels = levelsFor(vid).slice().reverse();
+    const v = VOL[vid], levels = topDown(vid);
     const col = h('div', { class: 'col' }, h('h5', {}, v.name + '  (zone ' + v.zone + ')'));
     col.append(h('div', { class: 'row small' }, 'Opens in phase', selBox([1, 2, 3, 4].map(n => [n, String(n)]), vphase(st, vid), x => { st.volPhase[vid] = +x; })));
     if (v.kind === 'pavilion') col.append(h('div', { class: 'row small', style: 'margin:3px 0' }, 'Floors:', btn('−', () => commit(() => { st.floors[vid] = Math.max(1, floorsOf(st, vid) - 1); }), 'tiny'), h('b', {}, floorsOf(st, vid)), btn('+', () => commit(() => { st.floors[vid] = floorsOf(st, vid) + 1; }), 'tiny')));
@@ -7970,7 +7973,7 @@ function roomSheet(s, p) {
 function volSheet(v, p) {
   const rooms = RES.eff.filter(s => s.vol === v.id);
   let out = '<div class="sheet">' + sheetHead('Building sheet', v.name, 'zone ' + v.zone + (v.kind === 'pavilion' ? ', ' + floorsOf(st, v.id) + ' floors' : '') + ', opens in phase ' + vphase(st, v.id));
-  out += tbl(['Level', 'Rooms'], levelsFor(v.id).slice().reverse().map(l => [lvlName(l), esc(rooms.filter(s => s.lvl === l).map(s => clip(s.name, 50)).join('; '))]).filter(r => r[1]));
+  out += tbl(['Level', 'Rooms'], topDown(v.id).map(l => [lvlName(l), esc(rooms.filter(s => s.lvl === l).map(s => clip(s.name, 50)).join('; '))]).filter(r => r[1]));
   if (p.story) out += storyHTML(storyData(VOL_TOPICS[v.kind] || [], []));
   out += '<h4>What the builder asked, and what the designer decided</h4>' + specTable(specLines('vol', st.vspec[v.id], { vol: v, floors: floorsOf(st, v.id) })) + carriedHere('vol', v.id);
   const ideas = st.ideas.filter(x => x.scope === 'vol' && x.key === v.id); if (ideas.length) out += '<h4>Design ideas for this building</h4>' + ideasHTML(ideas, p.imgs);
@@ -8023,7 +8026,7 @@ function reportHTML(p) {
   if (sec.floors) {
     const fr = [];
     ['civic', 'galleries', 'commons', 'training', 'court', 'ccourt', 'hall', 'making', 'music', 'quiet', 'gardenpav', 'service', 'outdoor', 'silong'].forEach(vid => { const v = VOL[vid];
-      levelsFor(vid).slice().reverse().forEach((l, i) => { const items = res.eff.filter(s => s.vol === vid && s.lvl === l); const load = items.reduce((a, s) => a + gross(s), 0);
+      topDown(vid).forEach((l, i) => { const items = res.eff.filter(s => s.vol === vid && s.lvl === l); const load = items.reduce((a, s) => a + gross(s), 0);
         if (!items.length && v.kind === 'outdoor') return;
         fr.push([i === 0 ? '<b>' + esc(v.name) + '</b><div class="q">zone ' + v.zone + (v.kind === 'pavilion' ? ', ' + floorsOf(st, vid) + ' floors' : '') + ', phase ' + vphase(st, vid) + '</div>' : '', lvlName(l), items.map(s => esc(clip(s.name, 48))).join('; '), load ? Math.round(load) : '']); }); });
     P.push('<h2>Floors and zones</h2>' + tbl(['Building', 'Level', 'Spaces', 'Gross m²'], fr) + '<p class="sub">Toilet blocks and lockers in: ' + st.dist.map(v => esc(VOL[v].name)).join('; ') + '.</p>');
