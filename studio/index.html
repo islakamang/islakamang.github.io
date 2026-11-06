@@ -7372,11 +7372,12 @@ const NOISE_OF = { quiet: 'quiet', learning: 'quiet', support: 'quiet', staff: '
 const TYPE_LABEL = { social: 'Social', learning: 'Learning', quiet: 'Quiet', active: 'Active', creative: 'Creative', digital: 'Digital', assembly: 'Assembly', outdoor: 'Outdoor', support: 'Support', staff: 'Staff', service: 'Service' };
 const levelsFor = vid => { const v = VOL[vid]; if (!v) return ['O']; if (v.kind === 'pavilion') { const a = []; const n = floorsOf(st, vid); for (let i = 1; i <= n; i++) a.push(String(i)); if (vid === 'making') a.push('B1'); return a; } if (v.kind === 'tall') return ['T']; if (vid === 'silong') return ['G']; return ['O']; };
 const lvlName = l => l === 'B1' ? 'Undercroft B1' : l === 'T' ? 'One tall volume' : l === 'O' ? 'Open ground' : l === 'G' ? 'Silong' : 'Floor ' + l;
+const lvlLow = l => l === 'B1' ? 'undercroft (B1)' : lvlName(l).toLowerCase();   // D264: a sentence-case level name that keeps B1
 const spById = id => RES.eff.find(s => s.id === id);
 function spLine(s) {
   const bits = [];
   if (s.net) bits.push(Math.round(s.net).toLocaleString() + ' m²'); if (s.ord != null) bits.push('usually ' + s.ord + (s.max != null ? ', up to ' + s.max : ''));
-  bits.push(VOL[s.vol] ? VOL[s.vol].name + (s.lvl && !['T', 'O'].includes(s.lvl) ? ', ' + lvlName(s.lvl).toLowerCase() : '') : '');
+  bits.push(VOL[s.vol] ? VOL[s.vol].name + (s.lvl && !['T', 'O'].includes(s.lvl) ? ', ' + lvlLow(s.lvl) : '') : '');
   bits.push('phase ' + (s.phase >= 5 ? 'later' : s.phase));
   return bits.filter(Boolean).join('  |  ');
 }
@@ -7955,7 +7956,7 @@ function roomSheet(s, p) {
   const d = st.dec[s.id] || {}, a = AREA[s.area], cl = codeLoad(s);
   const why = s._d === 'added' ? (s.why || '') : (d.why || '');
   const facts = [['Decision', { adopt: 'Adopted from the draft', adapt: 'Adapted from the draft', defer: 'Deferred to a later phase', added: 'Added by the designer' }[s._d] || ''],
-    ['Area', s.area + ' ' + (a ? a.name : '')], ['Building and floor', VOL[s.vol].name + (['T', 'O', 'G'].includes(s.lvl) ? '' : ', ' + lvlName(s.lvl).toLowerCase())],
+    ['Area', s.area + ' ' + (a ? a.name : '')], ['Building and floor', VOL[s.vol].name + (['T', 'O', 'G'].includes(s.lvl) ? '' : ', ' + lvlLow(s.lvl))],
     ['Size', s.net ? Math.round(s.net) + ' m² net' : 'adds no floor area'], ['People', s.ord != null ? 'usually ' + s.ord + (s.max != null ? ', up to ' + s.max : '') + (cl ? ' (code load ' + cl + ')' : '') : ''],
     ['Phase', s.phase >= 5 ? 'later' : String(s.phase)], ['Why it exists', why || (s.basis ? 'Draft: ' + s.basis : '')]].filter(r => r[1]);
   let out = '<div class="sheet">' + sheetHead('Room sheet', s.name, s.area + ' ' + (a ? a.name : '')) + tbl(['', ''], facts.map(([k, v]) => ['<b>' + k + '</b>', esc(v)])).replace('<tr><th></th><th></th></tr>', '');
@@ -8008,7 +8009,7 @@ function reportHTML(p) {
     DATA.areas.forEach(a => { const rows = [];
       DATA.spaces.filter(s => s.area === a.id).forEach(b => { const d = st.dec[b.id] || { d: 'pending' }, e = res.eff.find(x => x.id === b.id);
         rows.push([esc((e && e.name) || b.name), { adopt: 'adopted', adapt: 'adapted', defer: 'deferred', skip: 'set aside', pending: 'not decided' }[d.d], e && e.net ? Math.round(e.net) : '', e && e.ord != null ? e.ord + (e.max != null ? ' / ' + e.max : '') : '',
-          e ? esc(VOL[e.vol].name + (['T', 'O', 'G'].includes(e.lvl) ? '' : ', ' + lvlName(e.lvl).toLowerCase())) : '', e ? (e.phase >= 5 ? 'later' : e.phase) : '', esc(d.d === 'skip' ? (d.reason || '') : (d.why || ''))]); });
+          e ? esc(VOL[e.vol].name + (['T', 'O', 'G'].includes(e.lvl) ? '' : ', ' + lvlLow(e.lvl))) : '', e ? (e.phase >= 5 ? 'later' : e.phase) : '', esc(d.d === 'skip' ? (d.reason || '') : (d.why || ''))]); });
       st.added.filter(x => x.area === a.id).forEach(x => rows.push([esc(x.name) + ' <b>(added)</b>', 'mine', x.net ? Math.round(x.net) : '', x.ord != null ? x.ord : '', esc(VOL[x.vol].name), x.phase >= 5 ? 'later' : x.phase, esc(x.why || '')]));
       P.push('<h3>' + a.id + '  ' + esc(a.name) + '</h3>' + tbl(['Space', 'Decision', 'm²', 'Usual / busiest', 'Building and floor', 'Phase', 'Reason'], rows)); });
   }
