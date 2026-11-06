@@ -6832,8 +6832,18 @@ const PAV = DATA.vols.filter(v => v.kind === 'pavilion' || v.kind === 'tall').ma
 const questionsFor = () => [];
 
 /* ------------------------------------------------------------------ state */
+/* D264: the program grew from 65 to 73 spaces and every room after S9 was renumbered. A save from before that holds decisions
+   under the old numbers, so they are set aside, kept inside the file as _before73, and the member is told; nothing is mapped by guesswork. */
+function migrate73(o) {
+  if (!o || o.p73) return o;
+  const had = Object.keys(o.dec || {}).length + Object.keys(o.brief || {}).length;
+  o._before73 = { dec: o.dec || {}, brief: o.brief || {}, accepted: o.accepted || {} };
+  o.dec = {}; o.brief = {}; o.accepted = {}; o.p73 = true;
+  if (had) o.notice73 = true;
+  return o;
+}
 function newState() {
-  return { v: 2, designer: '', role: '', created: new Date().toISOString(), step: 0,
+  return { v: 2, p73: true, designer: '', role: '', created: new Date().toISOString(), step: 0,
     pins: {}, readings: {}, crit: [], propDec: {}, done: {}, vspec: {}, aspec: {}, ideas: [], carry: {}, pmap: {},
     dec: {}, added: [], rel: Object.assign({}, DATA.rel), ruleDec: {}, customRules: [],
     floors: {}, volPhase: {}, dist: DATA.distVols.slice(), char: {}, brief: {}, accepted: {}, notes: {}, seen: {}, book: {} };
@@ -7141,7 +7151,7 @@ let st = load();
 const view = { spec: null, area: 'A1', grp: 'RP1', tag: 'All', q: '', open: {}, sel: null, evPick: null, addOpen: false, ruleForm: { a: '', b: '', t: 'near' }, evScope: 'grp' };
 
 function load() {
-  try { const s = localStorage.getItem(KEY); if (s) { const o = JSON.parse(s); if (o && o.v === 2) return Object.assign(newState(), o); } } catch (e) { }
+  try { const s = localStorage.getItem(KEY); if (s) { const o = JSON.parse(s); if (o && o.v === 2) return Object.assign(newState(), migrate73(o)); } } catch (e) { }
   return newState();
 }
 function save() { st.savedAt = new Date().toISOString(); if (typeof scheduleSync === 'function') scheduleSync(); try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { if (!view.qwarn) { view.qwarn = true; setTimeout(() => toast('The browser is full (images take room). Use "Save my work as a file" in My record so nothing is lost.'), 50); } } }
@@ -7236,6 +7246,7 @@ function renderCoach() {
 /* ------------------------------------------------------------------ Start */
 function viewStart() {
   const r = h('div', {});
+  if (st.notice73) r.append(h('div', { class: 'notice gold' }, h('b', {}, 'The draft program was updated. '), 'Chapter 5 now has 73 spaces, with the undercroft (B1 and B2) in place of the single basement, so the room numbers changed. Your earlier answers in the Program step were set aside (a copy stays inside your saved file); your criteria, ideas, and every other step are kept. Please go through the Program step again. ', btn('Got it', () => { st.notice73 = false; save(); render(); })));
   r.append(h('h2', {}, 'Welcome to the KAMANG Design Studio'),
     h('p', {}, 'This is a place to work out, in your own words and decisions, what the Ilagan City Teen Center should be. It does not hand you a design. It gives you the evidence the study has already gathered, asks you to write your own criteria, and shows the draft ideas of the team as options you can take, bend, or set aside.'));
   r.append(h('div', { class: 'grid2' },
@@ -7271,7 +7282,7 @@ function draftGlance() {
 }
 function loadFile(f) {
   if (!f) return; const rd = new FileReader();
-  rd.onload = () => { try { const o = JSON.parse(rd.result); if (o.v !== 2) throw 0; st = Object.assign(newState(), o, { online: st.online || {} }); save(); toast('Loaded ' + (st.designer || 'design')); render(); } catch (e) { toast('That file is not a Studio save.'); } };
+  rd.onload = () => { try { const o = JSON.parse(rd.result); if (o.v !== 2) throw 0; st = Object.assign(newState(), migrate73(o), { online: st.online || {} }); save(); toast('Loaded ' + (st.designer || 'design')); render(); } catch (e) { toast('That file is not a Studio save.'); } };
   rd.readAsText(f);
 }
 
@@ -8249,7 +8260,7 @@ async function doResume(f) {
     if (!r.ok) { toast({ team_code: 'That team code is not right.', not_found: 'No one joined with that name yet.', pin: 'PIN does not match.' }[r.err] || 'Could not load: ' + r.err); return; }
     if (r.data && !confirm('Replace the work in this browser with your saved online work?')) return;
     const o = r.data ? JSON.parse(r.data) : {};
-    st = Object.assign(newState(), o, { online: { joined: true, id: r.id, name: f.name.trim(), team: f.team, pin: f.pin } });
+    st = Object.assign(newState(), migrate73(o), { online: { joined: true, id: r.id, name: f.name.trim(), team: f.team, pin: f.pin } });
     save(); toast('Your work is loaded.'); render();
   } catch (e) { toast('No connection to the team sheet.'); }
 }
@@ -8279,7 +8290,7 @@ async function liveLoadAll() {
   const lv = view.live; if (!lv || !lv.members) { await liveRefresh(); if (!view.live.members) return; }
   const L = teamList(); let n = 0;
   for (const m of view.live.members) {
-    try { const r = await api({ action: 'get', key: view.live.key, id: m['Member id'] }); if (r.ok && r.data) { const s = Object.assign(newState(), JSON.parse(r.data)); const i = L.findIndex(x => (x.st.designer || x.file) === (s.designer || m.Name)); const rec = { file: m.Name + ' (online)', st: s }; if (i >= 0) L[i] = rec; else L.push(rec); n++; } } catch (e) { }
+    try { const r = await api({ action: 'get', key: view.live.key, id: m['Member id'] }); if (r.ok && r.data) { const s = Object.assign(newState(), migrate73(JSON.parse(r.data))); const i = L.findIndex(x => (x.st.designer || x.file) === (s.designer || m.Name)); const rec = { file: m.Name + ' (online)', st: s }; if (i >= 0) L[i] = rec; else L.push(rec); n++; } } catch (e) { }
   }
   teamSave(); toast('Loaded ' + n + ' members\' work.'); render();
 }
