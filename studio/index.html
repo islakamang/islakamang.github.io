@@ -179,6 +179,9 @@ figure.pic figcaption{font-size:11.5px;color:var(--mut);margin-top:3px}
 .reflinks details{flex-basis:100%;margin-top:2px}.reflinks details a{color:var(--blue)}
 .picrow{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px}.picrow figure.pic{flex:1 1 260px;max-width:420px;margin:0}
 .spvrow figure.pic{flex:1 1 230px;max-width:340px;margin:0}
+.picstrip{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+figure.pic.sm{margin:0;width:170px;max-width:46%}figure.pic.sm figcaption{font-size:10.5px;line-height:1.2}
+figure.pic.gen{margin:0;width:300px;max-width:100%;cursor:zoom-in}figure.pic.gen img{width:100%;height:auto;border-radius:8px;border:1px solid var(--rule);display:block}figure.pic.gen figcaption{font-size:11px;color:var(--mut);margin-top:3px}
 </style>
 </head>
 <body>
@@ -7619,7 +7622,8 @@ function qEl(q, ans, ctx, nested) {
       } else { ans[q.id] = ans[q.id] === o.label ? null : o.label; ans[q.id + '_also'] = alsoOf(ans, q.id).filter(x => x !== o.label); }
       save(); render();
     } }, h('div', { class: 'ot' }, o.label, o.draft ? h('span', { class: 'tag draft' }, 'team draft') : null, mixed ? h('span', { class: 'tag mixed' }, 'blended in') : null), o.d ? h('div', { class: 'od' }, dimText(o.d)) : null, o.n ? h('div', { class: 'ob' }, 'The builder weighs: ' + o.n) : null, o.pil && o.pil.length ? h('div', { class: 'op' }, 'Serves ' + o.pil.map(p => PIL[p] ? PIL[p].name + ' (' + p + ')' : p).join('; ')) : null,
-      optVisual(o.label + ' ' + (o.d || '').slice(0, 160)),
+      optPicsSpec(o.label, (o.d || '').slice(0, 160), ctx),
+      optVisual(o.label + ' ' + (o.d || '').slice(0, 160), o.label),
       canBlend && !on && cur ? h('div', { class: 'row', style: 'margin-top:4px' }, h('button', { class: 'tiny' + (mixed ? ' sel' : ''), title: 'Use this together with your main choice', onclick: ev => { ev.stopPropagation(); toggleAlso(ans, q.id, o.label); save(); render(); } }, mixed ? '✓ Blended in (tap to remove)' : '＋ Blend this in')) : null);
     opts.append(c);
   });
@@ -9387,7 +9391,7 @@ function qdCard() {
   out.append(h('div', { class: 'card evidence' }, h('b', {}, 'What matters most (from the study)'), list, evPanels(ids, 'q' + d.id, { dec: d }),
     F.main.length > show.length ? h('div', {}, btn('Show 5 more facts', function () { S.more[d.id] = pages + 1; render(); }, 'tiny')) : null));
   // options
-  out.append(h('h3', { style: 'margin:14px 0 2px' }, 'Pick a main option'), h('div', { class: 'small mut', style: 'margin-bottom:4px' }, rec.auto ? 'The builder\'s pick is checked for you. Keep it, or tap another option. To mix ideas, keep one as the main choice and tap "＋ Blend" on others.' : 'Tap an option to change your main pick. Tap "＋ Blend" on others to mix them in.'));
+  out.append(h('h3', { style: 'margin:14px 0 2px' }, 'Pick a main option'), h('div', { class: 'small mut', style: 'margin-bottom:4px' }, rec.auto ? 'The builder\'s pick is checked for you. Keep it, or tap another option. To mix ideas, keep one as the main choice and tap "＋ Blend" on others.' : 'Tap an option to change your main pick. Tap "＋ Blend" on others to mix them in. The large sketch is drawn for that option; the small pictures are the nearest concept sketches and images in the study.'));
   var ts = typeof qdTeamStrip === 'function' ? qdTeamStrip(d) : null; if (ts) out.append(ts);
   d.options.forEach(function (o) { out.append(qdOption(d, o, rec, S)); });
   // own idea
@@ -9419,7 +9423,8 @@ function qdOption(d, o, rec, S) {
   var card = h('div', { class: 'qopt' + (sel ? ' on' : '') + (mixed ? ' mix' : '') },
     h('div', { class: 'qoh' }, h('span', { class: 'qoc' }, o.code), h('b', {}, o.name), isRec ? h('span', { class: 'qrec' }, 'Builder suggests') : null),
     h('div', { class: 'qod' }, dimText(qdShort(qdFirst(o.idea), 240))),
-    optVisual(o.name + ' ' + qdFirst(o.idea)),
+    optPicsBook(d, o, d.options.indexOf(o)),
+    optVisual(o.name + ' ' + qdFirst(o.idea), o.name),
     o.tradeoff ? h('div', { class: 'qow' }, h('b', {}, 'Watch out: '), dimText(qdShort(o.tradeoff, 200))) : null,
     h('div', { class: 'row', style: 'margin-top:6px' }, btn(sel ? (rec.auto ? '✓ Checked for you' : '✓ Main choice') : (rec.option && rec.option !== 'Own' ? 'Make ' + o.code + ' the main choice' : 'Choose ' + o.code), function () { qdChoose(d, o); }, sel ? 'pri' : 'qbig'),
       canMix ? btn(mixed ? '✓ Blended in (tap to remove)' : '＋ Blend ' + o.code + ' in', function () { qdBlend(d, o); }, 'tiny' + (mixed ? ' sel' : '')) : null,
@@ -9864,15 +9869,15 @@ function refLinks(text) {
   return box;
 }
 /* color words and materials in a label become swatches */
-const COLORS_ = [[/earth/i, ['#8b5e3c', '#c08a52', '#e4cfa9']], [/corn gold|gold|yellow/i, ['#e2b33a']], [/pastel/i, ['#f2d4dc', '#d4e6f1', '#efe4c9']], [/white|neutral/i, ['#ffffff', '#e9eaee']], [/cool|blue/i, ['#2b5c9e', '#7fa8d6']], [/ibanag red|red/i, ['#a8352b']], [/dark|moody/i, ['#2a2f3a']], [/bright|saturated/i, ['#e8a317', '#2b8fd6', '#c2358a']], [/bamboo|timber|wood/i, ['#b98a52']], [/concrete|grey|gray/i, ['#a6adba']], [/terracotta|brick/i, ['#b4573a']], [/charcoal|steel/i, ['#4a5262']]];
+const COLORS_ = [[/earth/i, ['#8b5e3c', '#c08a52', '#e4cfa9']], [/corn gold|gold|yellow/i, ['#e2b33a']], [/pastel/i, ['#f2d4dc', '#d4e6f1', '#efe4c9']], [/white|neutral/i, ['#ffffff', '#e9eaee']], [/cool|blue/i, ['#2b5c9e', '#7fa8d6']], [/ibanag red|red/i, ['#a8352b']], [/dark|moody/i, ['#2a2f3a']], [/bright|saturated/i, ['#e8a317', '#2b8fd6', '#c2358a']], [/bamboo|timber|wood/i, ['#b98a52']], [/concrete|grey|gray/i, ['#a6adba']], [/terracotta|brick/i, ['#b4573a']], [/charcoal/i, ['#4a5262']]];
 function swatchStrip(text) {
   const t = String(text || ''), cols = [];
   COLORS_.forEach(function (p) { if (p[0].test(t)) p[1].forEach(function (c) { if (cols.indexOf(c) < 0) cols.push(c); }); });
   if (!cols.length) return null;
   return h('div', { class: 'swatches' }, cols.slice(0, 5).map(function (c) { return h('i', { style: 'background:' + c, title: c }); }));
 }
-function optVisual(text) {
-  const a = refLinks(text), b = swatchStrip(text);
+function optVisual(text, short) {
+  const a = refLinks(text), b = swatchStrip(short == null ? text : short);
   return (a || b) ? h('div', { class: 'optvis' }, b, a) : null;
 }
 /* the manuscript's own concept sketches, by decision and by kind of room */
@@ -9925,6 +9930,52 @@ function spaceVisual(s) {
   wrap.append(h('div', { class: 'row small' }, r ? h('span', { class: 'dimchip' }, '≈ ' + r.txt) : null, h('button', { class: 'link', onclick: () => { view.open[k] = !open; render(); } }, open ? 'Hide the picture' : 'See it: to scale, and a concept image')));
   if (open) { const th = roomThumb(s), sk = sketchForSpace(s), key = picForSpace(s); wrap.append(h('div', { class: 'spvrow' }, th, sk ? picEl(sk) : null, key ? picEl(key) : null)); }
   return wrap;
+}
+
+/* ------------------------------------------------------------------ every option shows the closest pictures: the manuscript's sketches and concept renders, matched by the idea an option names */
+const KEY_PICS = { hip: ['B3', 'pavilions'], gable: ['pavilions', 'B3'], husk: ['B3', 'pavilions'], green: ['CS14b', 'CS12a'], sawtooth: ['CS08a', 'making'], court: ['garden', 'CS12a'], spine: ['B1', 'CS02a'], tower: ['B4', 'CS01c'], raised: ['CS03a', 'silong'], terrace: ['CS12b', 'CS04c'], gallery: ['CS04a', 'a2'],
+  bridge: ['road', 'CS02a'], sunk: ['CS11b', 'arena'], water: ['CS03b', 'a8'], garden: ['CS12a', 'garden'], weave: ['CS08b', 'screen'], screen: ['screen', 'CS04d'], capiz: ['CS09b', 'screen'], bamboo: ['CS09b', 'screen'], timber: ['CS04b', 'commons'], concrete: ['CS03a', 'silong'], glass: ['CS04d', 'lantern'],
+  lantern: ['CS04d', 'lantern'], media: ['medwall', 'floor'], pods: ['CS09b', 'CS09c'], table: ['CS04b', 'commons'], stage: ['CS07a', 'CS07b'], ring: ['CS06c', 'park'], nightmkt: ['festival', 'lantern'], loom: ['CS08b', 'B4'] };
+const VOL_PIC = { civic: 'road', galleries: 'CS04b', commons: 'CS04a', training: 'a3', court: 'CS05a', ccourt: 'court', hall: 'CS07a', making: 'CS08a', music: 'CS07b', quiet: 'CS10a', gardenpav: 'CS10b', service: 'a10' };
+const AREA_PIC = { A1: 'CS01a', A2: 'CS04a', A3: 'CS05a', A4: 'CS07a', A5: 'CS08a', A6: 'CS09a', A7: 'CS11a', A8: 'CS12a', A9: 'CS13a', A10: 'CS14a' };
+function picsFor(text, fallback, n) {
+  const out = [], add = function (k) { if (k && PICS[k] && out.indexOf(k) < 0 && out.length < (n || 2)) out.push(k); };
+  sketchKeys(text).forEach(function (k) { add((KEY_PICS[k] || [])[0]); });
+  sketchKeys(text).forEach(function (k) { add((KEY_PICS[k] || [])[1]); });
+  (fallback || []).forEach(add);
+  return out;
+}
+function openImg(src, cap) {
+  const ov = h('div', { class: 'lightbox', onclick: () => ov.remove() }, h('figure', {}, h('img', { src: src, alt: cap }), h('figcaption', {}, cap + '. Prepared for this study. Tap anywhere to close.')));
+  document.body.append(ov);
+}
+/* the sketch drawn for this option (workshop/studio-img): shown when its file exists, absent otherwise */
+function genFig(name, cap) {
+  const f = h('figure', { class: 'pic gen', style: 'display:none', title: 'Tap to enlarge' }), img = h('img', { alt: cap });
+  img.onload = function () { f.style.display = ''; const sm = f.parentNode && f.parentNode.querySelectorAll('figure.pic.sm'); if (sm && sm.length > 1) sm[sm.length - 1].remove(); };
+  img.onerror = function () { f.remove(); };
+  img.src = 'studio-img/' + name + '.jpg';
+  f.append(img, h('figcaption', {}, cap));
+  f.onclick = function (ev) { ev.stopPropagation(); openImg(img.src, cap); };
+  return f;
+}
+function picStrip(keys, gen) {
+  if (!keys.length && !gen) return null;
+  return h('div', { class: 'picstrip', onclick: function (ev) { ev.stopPropagation(); } }, gen || null, keys.map(function (k) { const p = PICS[k]; return h('figure', { class: 'pic sm', title: 'Tap to enlarge', onclick: function (ev) { ev.stopPropagation(); openPic(k); } }, h('img', { src: p[1], alt: p[0], loading: 'lazy' }), h('figcaption', {}, (p[2] === 'sketch' ? 'Sketch: ' : 'Image: ') + p[0])); }));
+}
+/* a Decision Book option: its own idea first, then the decision's pictures, turned by the option's place so options differ */
+function optPicsBook(d, o, i) {
+  const base = (SK_OF_DEC[d.id] || []).concat(PIC_OF_DEC[d.id] ? [PIC_OF_DEC[d.id]] : []), rot = base.length ? base.slice(i % base.length).concat(base.slice(0, i % base.length)) : [];
+  return picStrip(picsFor(o.name + ' ' + qdFirst(o.idea), rot, 2), genFig(d.id + o.code, 'Concept sketch for this option'));
+}
+/* a Specify option: its own idea first, then the picture of the place being specified */
+function optPicsSpec(label, d, ctx) {
+  const fb = [];
+  if (ctx && ctx.space) { fb.push(sketchForSpace(ctx.space)); fb.push(picForSpace(ctx.space)); }
+  else if (ctx && ctx.area) fb.push(AREA_PIC[ctx.area.id]);
+  else if (ctx && ctx.vol) fb.push(VOL_PIC[ctx.vol.id]);
+  else fb.push('aerial', 'B2');
+  const sk = sketchKeys(label + ' ' + (d || ''))[0]; return picStrip(picsFor(label + ' ' + (d || ''), fb, 2), sk ? genFig('k_' + sk, 'Concept sketch of this kind of idea') : null);
 }
 
 /* Part O (D270): the space planner. The team's draft program is laid out on the lot, an area, a floor, or inside a room.
