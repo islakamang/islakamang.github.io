@@ -122,6 +122,20 @@ svg text{font-family:inherit}
 .bkwrap{display:grid;grid-template-columns:270px minmax(0,1fr);gap:14px;align-items:start}.bknav{position:sticky;top:8px;max-height:82vh;overflow:auto;padding:8px}
 @media(max-width:1000px){.bkwrap{grid-template-columns:1fr}.bknav{position:static;max-height:260px}}
 .mono{font-family:Consolas,monospace}
+
+/* D268 simple Decision Book and step guide */
+.qd{max-width:820px}.qlead{font-size:15px;margin:4px 0 10px}.qd h2{margin:6px 0}
+.qbig{font-size:14px;padding:6px 16px}.qrow{display:flex;gap:10px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--rule)}.qrow.click{cursor:pointer}.qrow.click:hover{background:var(--slate-t)}
+.qid{font-family:Consolas,monospace;font-size:12px;background:var(--slate-t);color:var(--slate);border-radius:6px;padding:1px 7px;white-space:nowrap}
+.qnext{border-left:5px solid var(--blue)}.qq{border-left:5px solid var(--ink)}
+.qfacts{margin:6px 0 4px;padding-left:20px}.qfacts li{margin:5px 0;font-size:13.5px}.qfacts li.against{color:#7a4a00}
+.qopt{background:#fff;border:2px solid var(--rule);border-radius:12px;padding:10px 14px;margin:8px 0}.qopt.on{border-color:var(--blue);background:var(--blue-t)}
+.qoh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.qoc{display:inline-block;min-width:26px;height:26px;border-radius:13px;background:var(--blue);color:#fff;text-align:center;line-height:26px;font-weight:700}
+.qrec{font-size:11.5px;background:var(--gold-t);color:var(--gold);border:1px solid #e5d49a;border-radius:9px;padding:0 8px}
+.qod{margin-top:4px;font-size:13.5px}.qow{margin-top:4px;font-size:12.5px;color:#7a4a00}.qownc{border-style:dashed}.qownc textarea{width:100%;box-sizing:border-box;margin-top:6px}
+.qres{border-left:5px solid var(--blue);background:var(--blue-t)}.qres textarea{width:100%;box-sizing:border-box;margin:6px 0}
+.qdots{display:flex;align-items:center;gap:6px}.qdot{width:12px;height:12px;border-radius:6px;border:2px solid var(--rule);background:#fff}.qdot.now{border-color:var(--blue)}.qdot.ok{background:var(--blue);border-color:var(--blue)}
+.guide{background:#fff;border:1px solid #bfd2ea;border-left:5px solid var(--blue);border-radius:10px;padding:8px 14px;margin:0 0 12px}.guide ul{margin:4px 0 4px;padding-left:20px}.guide li{font-size:13.5px;margin:2px 0}
 </style>
 </head>
 <body>
@@ -7302,6 +7316,8 @@ function render() {
   renderSteps();
   const m = $('#main'); m.innerHTML = '';
   const fn = { start: viewStart, decide: viewDecide, evidence: viewEvidence, concept: viewConcept, criteria: viewCriteria, program: viewProgram, adjacency: viewAdjacency, floors: viewFloors, specify: viewSpecify, build: viewBuild, check: viewCheck, record: viewRecord, team: viewTeam }[STEPS[st.step][0]];
+  const sg = typeof stepGuide === 'function' ? stepGuide(STEPS[st.step][0]) : null;
+  if (sg) m.append(sg);
   m.append(fn());
   renderCoach();
   window.scrollTo(0, y);
@@ -7322,6 +7338,13 @@ function stepFoot(prev, nextLabel, nextId, doneKey) {
 function renderCoach() {
   const c = $('#coach'); if (!c) return; c.innerHTML = '';
   const res = RES || check(st), S = stats(st, res);
+  if (!view.coachOpen) {
+    const R0 = RES || check(st), S0 = stats(st, R0);
+    c.append(h('h3', { style: 'margin-top:0' }, 'Design coach'), h('div', { class: 'row' }, h('span', { class: 'sev error' }, S0.counts.error), h('span', { class: 'small' }, 'to fix'), h('span', { class: 'sev warn' }, S0.counts.warn), h('span', { class: 'small' }, 'to check')),
+      h('p', { class: 'small mut' }, 'It checks your choices against the study. Open it when you want its prompts.'), btn('Show the coach', () => { view.coachOpen = true; renderCoach(); }, 'tiny'));
+    return;
+  }
+  c.append(btn('Hide the coach', () => { view.coachOpen = false; renderCoach(); }, 'tiny'));
   c.append(h('h3', { style: 'margin-top:0' }, 'Design coach'),
     h('p', { class: 'small mut' }, 'It reads your decisions against the evidence of Chapters 1 to 4 and prompts what is missing or does not fit.'),
     h('div', { class: 'row' }, h('span', { class: 'sev error' }, S.counts.error), h('span', { class: 'small' }, 'to fix'), h('span', { class: 'sev warn' }, S.counts.warn), h('span', { class: 'small' }, 'to check'),
@@ -7344,28 +7367,19 @@ function viewStart() {
   const r = h('div', {});
   if (st.notice73) r.append(h('div', { class: 'notice gold' }, h('b', {}, 'The draft program was updated. '), 'Chapter 5 now has 73 spaces, with the undercroft (B1 and B2) in place of the single basement, so the room numbers changed. Your earlier answers in the Program step were set aside (a copy stays inside your saved file); your criteria, ideas, and every other step are kept. Please go through the Program step again. ', btn('Got it', () => { st.notice73 = false; save(); render(); })));
   r.append(h('h2', {}, 'Welcome to the KAMANG Design Studio'),
-    h('p', {}, 'This is a place to work out, in your own words and decisions, what the Ilagan City Teen Center should be. It does not hand you a design. It gives you the evidence the study has already gathered, asks you to write your own criteria, and shows the draft ideas of the team as options you can take, bend, or set aside.'));
-  r.append(h('div', { class: 'grid2' },
-    h('div', { class: 'card evidence' }, h('h4', {}, tagEl('Final', 'final'), ' Chapters 1 to 4: the evidence'), h('p', { class: 'small' }, 'The survey of 366 teens, the site analysis, the law, the precedents, the theory, and the city plans. These findings are settled. Everything you decide should rest on them.')),
-    h('div', { class: 'card proposal' }, h('h4', {}, tagEl('Draft', 'draft'), ' Chapters 5 and 6: proposals'), h('p', { class: 'small' }, 'The draft matrix, program, adjacency, and floors were written in anticipation. They are offered here as options, marked in purple. Adopt one, adapt it, or set it aside and give your reason. You own the result.'))));
-  r.append(h('h3', {}, 'How it works, in plain words'));
-  const steps = [['1', 'Read what we found', 'Evidence', 'The study already found things about the teens, the site, and the law. Read them, and mark the ones that matter to you.'],
-    ['2', 'Say the big idea', 'Concept and vibe', 'Tell the builder what the whole center is like: its feeling, its shape, its roof, its materials, how it handles heat and flood.'],
-    ['3', 'Set your rules', 'My criteria', 'Under each pillar, write the rules your design must follow, and name the finding that backs each rule.'],
-    ['4', 'List the rooms', 'Program', 'Choose which rooms the center has. Keep, change, or drop the team\'s draft rooms, and add your own.'],
-    ['5', 'Place the rooms', 'Adjacency, Floors', 'Say which rooms go together or apart, then put each room in a building and on a floor.'],
-    ['6', 'Tell the builder how to make it', 'Specify the build', 'Building by building and room by room: walls, roof, floor, windows, light, air, furniture, digital. Write any idea of your own, with versions and sketches.'],
-    ['7', 'Check and print', 'Check, My record', 'The coach shows what is missing or does not fit. Fix it or explain why, then print your record.']];
-  r.append(h('div', { class: 'flow' }, steps.map(([n, t, where, d]) => h('div', { class: 'fstep' }, h('div', { class: 'fn' }, n), h('b', {}, t), h('div', { class: 'small mut' }, where), h('div', { class: 'small' }, d)))));
-  r.append(h('div', { class: 'notice blue' }, h('b', {}, 'Where the pillars fit. '), 'The twelve pillars are the backbone. In step 3 you write your rules under each pillar. In step 6, every building and room shows the rules for its pillars, and you tick the ones that room carries and say how. The coach tells you when a rule is written but built nowhere, and when a pillar has no rules at all.'));
-  r.append(h('div', { class: 'notice gold' }, h('b', {}, 'You are not limited to the cards. '), 'Every question has a box for your own idea and a box for mixes, conditions, and exceptions. Every building, area, and room has a space for open design ideas: describe anything, compare versions A, B, and C, and add photos or draw a sketch.'));
+    h('p', { class: 'qlead' }, 'You only have to decide. The study\'s findings are shown for you, and the team\'s draft fills in the rest. Change what you disagree with; leave what you agree with.'));
+  r.append(h('h3', {}, 'Your path: three things'));
+  const card = (n, t, d, label, to) => h('div', { class: 'card', style: 'border-left:5px solid var(--blue)' }, h('div', { class: 'row' }, h('span', { class: 'qoc' }, n), h('b', {}, t), h('span', { class: 'grow' }), btn(label, () => go(to), 'pri')), h('div', { class: 'small', style: 'margin-top:4px' }, d));
+  r.append(card('1', 'Make the big choices', 'Fifty choices, five at a time. Each shows the facts and a few options. Tap one. If none fits, write your own in a line. Short on time? The builder can fill the rest and you review.', 'Open the Decision Book', 'decide'),
+    card('2', 'Confirm the layout', 'The rooms, what sits near what, and the floors are already drafted. Press adopt, and change only what you disagree with.', 'Start with the rooms', 'program'),
+    card('3', 'Check and share', 'See what is missing, then save your work as a file and send it to the researcher.', 'Go to Check', 'check'));
+  r.append(h('div', { class: 'notice blue' }, h('b', {}, 'Everything else is optional. '), 'Evidence, Concept and vibe, My criteria and Specify the build are for when you want more depth. Anything you leave blank uses the team\'s draft. You can tell us what to change later.'));
   r.append(h('div', { class: 'card mine' }, h('h4', {}, 'Who is designing?'),
     h('div', { class: 'grid2' }, h('div', {}, h('label', { class: 'f' }, 'Your name'), textBox(st.designer, v => { st.designer = v; })),
       h('div', {}, h('label', { class: 'f' }, 'Your role or strongest area (site, culture, technology, safety, drawing...)'), textBox(st.role, v => { st.role = v; }))),
-    h('p', { class: 'small mut' }, 'Your work is saved in this browser as you go. Use Save and Load in the last step to move it or to hand it in.')));
+    h('p', { class: 'small mut' }, 'Your work is saved in this browser as you go. Use "Save my work as a file" in Print and export to move it or hand it in.')));
   const jc = joinCard(); if (jc) r.append(jc);
-  r.append(h('h3', {}, 'The draft plan at a glance'), draftGlance());
-  r.append(h('div', { class: 'foot' }, btn('Start with the evidence', () => go('evidence'), 'pri'),
+  r.append(h('div', { class: 'foot' }, btn('Start deciding', () => go('decide'), 'pri qbig'),
     h('label', { class: 'btn' }, 'Load a saved file', h('input', { type: 'file', accept: '.json', style: 'display:none', onchange: ev => loadFile(ev.target.files[0]) }))));
   return r;
 }
@@ -9014,9 +9028,10 @@ function bkStatus(id) { var r = (st.book || {})[id]; return r && r.status ? r.st
 function regTag(eid) { var r = BOOK.reg[eid]; return h('span', { class: 'tag', title: r ? r.f + ' (' + (r.w === 'supplementary' ? 'supplementary source' : 'Section ' + r.w) + ')' : eid }, eid); }
 function regWhere(r) { return r.w === 'supplementary' ? 'supplementary source, outside Chapters 1 to 4' : 'Section ' + r.w; }
 
-function viewDecide() {
+function viewDecideFull() {
   view.bk = view.bk || { id: BOOK.decisions[0].id, q: '', body: 'All', more: false };
   var d = BK.byId[view.bk.id] || BOOK.decisions[0], r = h('div', {});
+  r.append(qdFullBar());
   r.append(h('h2', {}, 'Decision Book: decide the design, part by part'),
     h('div', { class: 'notice blue' }, 'Each decision lays out the key evidence of the study first, keeps the smaller findings ready on request, and lets you search the whole register (' +
       Object.keys(BOOK.reg).length + ' findings) when you want more. The master builder proposes options, judges them, and recommends one; you accept, reject, or change, or bring your own idea, and you write the decision and its reason. Your decisions save with the rest of your work and, when you have joined the team, online.'));
@@ -9185,6 +9200,228 @@ function bkMarkdown() {
     if (r.implications) L.push('**Implications.** ' + r.implications, '');
   });
   download(new Blob([L.join('\n')], { type: 'text/markdown' }), 'KAMANG_decisions_' + (st.designer || 'me').replace(/[^A-Za-z0-9]+/g, '_') + '.md');
+}
+
+/* KAMANG Design Studio, part L: the simple Decision Book and the step guide (D268).
+   The researcher found the Decision Book too much: it asked the team to find evidence and to write a lot. This part replaces its front door.
+   - One decision at a time, five to a round. Each card shows at most five facts the study already found, then three or four options to tap,
+     then one box for an idea of your own if none fits. A tap records the decision and its reason; nothing has to be typed.
+   - "Let the builder fill the rest" takes the builder's recommended option for every open decision; each is marked as a suggestion to review.
+   - The full version (every finding, the search, the seven tests, the rebuttal export) stays one click away as viewDecideFull().
+   - stepGuide(id) puts a short, plain guide at the top of every other step. */
+function qdState() { view.qd = view.qd || { mode: 'home', round: [], i: 0, more: {}, open: {}, ownOpen: {}, noteOpen: {}, skipped: {}, lastBk: null, single: false }; return view.qd; }
+function qdShort(s, n) { s = String(s || ''); if (s.length <= n) return s; var c = s.slice(0, n), k = c.lastIndexOf(' '); return c.slice(0, k > n * 0.6 ? k : n) + '…'; }
+function qdFirst(s) { var m = String(s || '').match(/^.*?[.;](\s|$)/); return m ? m[0].trim() : String(s || ''); }
+function qdDone(id) { return bkStatus(id) === 'Decided'; }
+function qdCount() { return BOOK.decisions.filter(function (x) { return qdDone(x.id); }).length; }
+function qdNext(n) {
+  var S = qdState(), open = BOOK.decisions.filter(function (x) { return !qdDone(x.id); });
+  var fresh = open.filter(function (x) { return !S.skipped[x.id]; }), late = open.filter(function (x) { return S.skipped[x.id]; });
+  return fresh.concat(late).slice(0, n).map(function (x) { return x.id; });
+}
+function qdStart(ids, single) { var S = qdState(); S.mode = 'card'; S.round = ids; S.i = 0; S.single = !!single; render(); window.scrollTo(0, 0); }
+function qdHome() { var S = qdState(); S.mode = 'home'; render(); window.scrollTo(0, 0); }
+
+/* a tap on an option records the decision and a reason built from the option's own evidence */
+function qdChoose(d, o) {
+  var rec = bkRec(d.id);
+  rec.option = o.code; rec.verdict = {}; rec.verdict[o.code] = 'Accept'; rec.own = '';
+  rec.decision = 'Option ' + o.code + ', ' + o.name + ': ' + o.idea;
+  rec.reason = 'Chosen in the Decision Book. It rests on ' + (o.rests_on || []).join(', ') + '.' + (o.beyond ? ' Also weighed: ' + o.beyond : '') + (o.tradeoff ? ' Trade-off accepted: ' + o.tradeoff : '') + (d.recommend && d.recommend !== o.code ? ' The builder suggested option ' + d.recommend + '.' : '');
+  rec.status = 'Decided'; rec.quick = true; rec.auto = false;
+  rec.musts = rec.musts || {}; (d.musts || []).forEach(function (m, i) { rec.musts[i] = true; });
+  save(); render();
+}
+function qdOwn(d, text) {
+  var rec = bkRec(d.id); text = (text || '').trim();
+  if (!text) return;
+  rec.option = 'Own'; rec.own = text; rec.verdict = {};
+  rec.decision = 'My own idea: ' + text;
+  rec.reason = 'None of the options fit, so the designer wrote this idea. It is checked against the same requirements as the options.';
+  rec.status = 'Decided'; rec.quick = true; rec.auto = false;
+  rec.musts = rec.musts || {}; (d.musts || []).forEach(function (m, i) { rec.musts[i] = true; });
+  save(); render();
+}
+function qdClear(d) { var rec = bkRec(d.id); rec.option = ''; rec.own = ''; rec.decision = ''; rec.reason = ''; rec.status = 'Open'; rec.quick = false; rec.auto = false; rec.verdict = {}; save(); render(); }
+function qdFillRest() {
+  var n = 0;
+  BOOK.decisions.forEach(function (d) {
+    if (qdDone(d.id)) return;
+    var o = bkOptByCode(d, d.recommend); if (!o) return;
+    qdChoose(d, o); var rec = bkRec(d.id); rec.auto = true;
+    rec.reason = 'The builder\'s suggestion, not yet reviewed by the team. ' + rec.reason; n++;
+  });
+  save(); render(); toast(n + ' decisions filled with the builder\'s suggestions. Review or change any of them.');
+}
+
+/* the facts: up to five at a time, the ones that matter most first, and at most one that pulls the other way */
+function qdFacts(d) {
+  var key = d.evidence.filter(function (e) { return e[3] === 'Key' && e[2] !== 'Conflicts'; });
+  var drives = key.filter(function (e) { return e[2] === 'Drives'; }), sup = key.filter(function (e) { return e[2] !== 'Drives'; });
+  var against = d.evidence.filter(function (e) { return e[2] === 'Conflicts'; });
+  return { main: drives.concat(sup), against: against };
+}
+
+function viewDecide() {
+  var S = qdState();
+  if (view.bk && view.bk.full) return viewDecideFull();
+  if (view.bk && view.bk.id && view.bk.id !== S.lastBk && BK.byId[view.bk.id]) { S.lastBk = view.bk.id; S.mode = 'card'; S.round = [view.bk.id]; S.i = 0; S.single = true; }
+  var r = h('div', { class: 'qd' });
+  r.append(S.mode === 'card' ? qdCard() : S.mode === 'sum' ? qdSummary() : S.mode === 'all' ? qdAll() : qdHomeView());
+  return r;
+}
+
+function qdHomeView() {
+  var S = qdState(), done = qdCount(), total = BOOK.decisions.length, next = qdNext(5), out = h('div', {});
+  out.append(h('h2', {}, 'Decision Book'),
+    h('p', { class: 'qlead' }, 'Fifty choices shape the center. For each one we show what the study found and a few options. You tap one. If none fits, write your own in a line or two. About a minute each.'));
+  out.append(h('div', { class: 'card' }, h('div', { class: 'row' }, h('b', {}, done + ' of ' + total + ' decided'), h('span', { class: 'grow' }),
+    done < total ? btn('Let the builder fill the rest', function () { if (confirm('Fill every open decision with the builder\'s suggestion? You can review and change any of them afterwards.')) qdFillRest(); }, 'tiny') : null),
+    h('div', { class: 'bar' }, h('i', { style: 'width:' + Math.round(100 * done / total) + '%' }))));
+  if (next.length) {
+    out.append(h('div', { class: 'card qnext' }, h('h3', { style: 'margin-top:0' }, done ? 'Your next ' + next.length : 'Start with these ' + next.length),
+      next.map(function (id) { var x = BK.byId[id]; return h('div', { class: 'qrow' }, h('span', { class: 'qid' }, x.id), h('span', {}, x.title)); }),
+      h('div', { class: 'row', style: 'margin-top:8px' }, btn(done ? 'Continue' : 'Start', function () { qdStart(next, false); }, 'pri qbig'))));
+  } else out.append(h('div', { class: 'notice blue' }, h('b', {}, 'All fifty are decided. '), 'Open any decision below to change it.'));
+  out.append(h('p', { class: 'small' }, btn('See all 50 decisions', function () { S.mode = 'all'; render(); }, 'tiny'), ' ',
+    btn('Download my decisions (.md)', bkMarkdown, 'tiny'), ' ', btn('Download my record (.json)', bkDownload, 'tiny'), ' ',
+    btn('Open the full detailed version', function () { view.bk = view.bk || { id: BOOK.decisions[0].id, q: '', body: 'All', more: false }; view.bk.full = true; render(); }, 'tiny')));
+  return out;
+}
+
+function qdAll() {
+  var S = qdState(), out = h('div', {});
+  out.append(h('div', { class: 'row' }, btn('← Back', qdHome), h('h2', { style: 'margin:0 0 0 8px' }, 'All 50 decisions')));
+  BK.groups.forEach(function (gp) {
+    out.append(h('h3', {}, gp[0]));
+    gp[1].forEach(function (x) {
+      var rec = (st.book || {})[x.id] || {}, o = rec.option && rec.option !== 'Own' ? bkOptByCode(x, rec.option) : null;
+      out.append(h('div', { class: 'qrow click', onclick: function () { qdStart([x.id], true); } }, h('span', { class: 'qid' }, x.id), h('span', { class: 'grow' }, x.title),
+        h('span', { class: 'small ' + (qdDone(x.id) ? '' : 'mut') }, qdDone(x.id) ? (rec.auto ? 'Suggested · ' : '✓ ') + (rec.option === 'Own' ? 'Your idea' : rec.option + (o ? ' ' + o.name : '')) : 'Open')));
+    });
+  });
+  return out;
+}
+
+function qdDots(S) {
+  return h('div', { class: 'qdots' }, S.round.map(function (id, i) { return h('span', { class: 'qdot' + (i === S.i ? ' now' : '') + (qdDone(id) ? ' ok' : ''), title: id }, ''); }),
+    h('span', { class: 'small mut' }, S.single ? '' : 'Decision ' + (S.i + 1) + ' of ' + S.round.length + ' in this round'));
+}
+
+function qdCard() {
+  var S = qdState(), d = BK.byId[S.round[S.i]], rec = bkRec(d.id), out = h('div', {}), F = qdFacts(d);
+  out.append(h('div', { class: 'row' }, btn('← Home', qdHome, 'tiny'), h('span', { class: 'grow' }), qdDots(S)));
+  out.append(h('div', { class: 'card qq' }, h('div', { class: 'small mut' }, d.id + ' · ' + (d.scale === 'Area' ? d.area || 'Area' : d.scale)),
+    h('h2', { style: 'margin:2px 0 6px' }, d.title), h('p', { class: 'qlead', style: 'margin:0' }, d.question)));
+  // facts
+  var pages = S.more[d.id] || 0, show = F.main.slice(0, 4 + pages * 5), ids = show.map(function (e) { return e[0]; });
+  var list = h('ul', { class: 'qfacts' }, show.map(function (e) { return h('li', {}, evRef(e[0], 'q' + d.id), ' ', e[1]); }));
+  if (F.against.length && pages === 0) { var c = F.against[0]; ids.push(c[0]); list.append(h('li', { class: 'against' }, evRef(c[0], 'q' + d.id), ' ', h('b', {}, 'Pulls the other way: '), c[1])); }
+  out.append(h('div', { class: 'card evidence' }, h('b', {}, 'What the study found'), list, evPanels(ids, 'q' + d.id, { dec: d }),
+    F.main.length > show.length ? h('div', {}, btn('Show 5 more facts', function () { S.more[d.id] = pages + 1; render(); }, 'tiny')) : null));
+  // options
+  out.append(h('h3', { style: 'margin:14px 0 4px' }, 'Pick one'));
+  d.options.forEach(function (o) { out.append(qdOption(d, o, rec, S)); });
+  // own idea
+  var ownOn = S.ownOpen[d.id] || rec.option === 'Own';
+  var own = h('div', { class: 'qopt' + (rec.option === 'Own' ? ' on' : '') + ' qownc' },
+    h('div', { class: 'qoh' }, h('span', { class: 'qoc' }, '✎'), h('b', {}, 'None of these fits. I\'ll say it myself.')));
+  if (ownOn) {
+    var ta = h('textarea', { rows: 3, placeholder: 'One or two sentences. You can mix options, e.g. "A, with the roof of C".' }); ta.value = rec.own || '';
+    own.append(ta, h('div', { class: 'row', style: 'margin-top:6px' }, btn('Save my idea', function () { qdOwn(d, ta.value); }, 'pri')));
+  } else own.append(btn('Write my own', function () { S.ownOpen[d.id] = true; render(); }, 'tiny'));
+  out.append(own);
+  // result
+  if (qdDone(d.id)) out.append(qdResult(d, rec, S));
+  // navigation
+  var last = S.i === S.round.length - 1;
+  out.append(h('div', { class: 'foot' }, S.i > 0 ? btn('← Back', function () { S.i--; render(); window.scrollTo(0, 0); }) : null,
+    !qdDone(d.id) ? btn('Skip for now', function () { S.skipped[d.id] = true; qdAdvance(S); }) : null,
+    btn(qdDone(d.id) ? (last ? (S.single ? 'Done' : 'Finish this round') : 'Next decision →') : (last ? 'Finish' : 'Next →'), function () { qdAdvance(S); }, qdDone(d.id) ? 'pri qbig' : '')));
+  return out;
+}
+function qdAdvance(S) {
+  if (S.i < S.round.length - 1) { S.i++; render(); window.scrollTo(0, 0); }
+  else if (S.single) qdHome(); else { S.mode = 'sum'; render(); window.scrollTo(0, 0); }
+}
+
+function qdOption(d, o, rec, S) {
+  var sel = rec.option === o.code, k = d.id + o.code, open = S.open[k], isRec = d.recommend === o.code;
+  var card = h('div', { class: 'qopt' + (sel ? ' on' : '') },
+    h('div', { class: 'qoh' }, h('span', { class: 'qoc' }, o.code), h('b', {}, o.name), isRec ? h('span', { class: 'qrec' }, 'Builder suggests') : null),
+    h('div', { class: 'qod' }, qdShort(qdFirst(o.idea), 240)),
+    o.tradeoff ? h('div', { class: 'qow' }, h('b', {}, 'Watch out: '), qdShort(o.tradeoff, 200)) : null,
+    h('div', { class: 'row', style: 'margin-top:6px' }, btn(sel ? '✓ Chosen' : 'Choose ' + o.code, function () { qdChoose(d, o); }, sel ? 'pri' : 'qbig'),
+      btn(open ? 'Hide details' : 'Read more', function () { S.open[k] = !open; render(); }, 'tiny')));
+  if (open) card.append(h('div', { class: 'small', style: 'margin-top:6px' }, o.idea),
+    h('div', { class: 'small', style: 'margin-top:4px' }, h('b', {}, 'Serves '), (o.pillars || []).map(function (p) { return tagEl(p, 'final'); }), h('b', { style: 'margin-left:8px' }, 'Rests on '), (o.rests_on || []).map(function (id) { return evRef(id, 'qo' + k); })),
+    evPanels(o.rests_on || [], 'qo' + k, { dec: d }));
+  return card;
+}
+
+/* after a choice: what it means in three lines, and an optional note */
+function qdResult(d, rec, S) {
+  var box = h('div', { class: 'card qres' });
+  if (rec.option === 'Own') box.append(h('p', { style: 'margin:0' }, h('b', {}, '✓ Saved. '), 'Your own idea is recorded. The builder will check it against the same requirements as the options.'));
+  else {
+    var o = bkOptByCode(d, rec.option), j = bkJudg(d, rec.option);
+    box.append(h('p', { style: 'margin:0' }, h('b', {}, '✓ Saved: '), rec.option + ', ' + (o ? o.name : '') + (rec.auto ? '  (the builder\'s suggestion; change it any time)' : '')));
+    if (d.recommend && d.recommend !== rec.option) box.append(h('p', { class: 'small', style: 'margin:6px 0 0' }, h('b', {}, 'The builder suggested ' + d.recommend + ': '), qdShort(qdFirst(d.recommend_why || ''), 260)));
+    if (j) {
+      var soft = BKTESTS.filter(function (k) { return j.tests[k] && j.tests[k][0] !== 'Strong'; }).sort(function (x, y) { return BKRANK[j.tests[x][0]] - BKRANK[j.tests[y][0]]; });
+      box.append(h('p', { class: 'small', style: 'margin:6px 0 0' }, soft.length ? [h('b', {}, 'Less strong on: '), soft.slice(0, 3).map(function (k) { return k + ' (' + j.tests[k][0].toLowerCase() + ')'; }).join(', '), soft.length > 3 ? ' and ' + (soft.length - 3) + ' more' : '', '.'] : 'Strong on every test the builder runs.'));
+    }
+  }
+  if ((d.musts || []).length) box.append(h('details', { class: 'small', style: 'margin-top:6px' }, h('summary', {}, 'What every option here already meets'), (d.musts || []).map(function (m) { return h('div', {}, '☑ ' + m); })));
+  if (S.noteOpen[d.id] || rec.note_free) {
+    var ta = h('textarea', { rows: 2, placeholder: 'A note for the record (optional)' }); ta.value = rec.note_free || ''; ta.addEventListener('change', function () { rec.note_free = ta.value; save(); });
+    box.append(ta);
+  } else box.append(btn('Add a note (optional)', function () { S.noteOpen[d.id] = true; render(); }, 'tiny'), ' ');
+  box.append(btn('Clear my answer', function () { qdClear(d); }, 'tiny'));
+  return box;
+}
+
+function qdSummary() {
+  var S = qdState(), out = h('div', {}), n = S.round.filter(qdDone).length;
+  out.append(h('h2', {}, 'Round done'), h('p', { class: 'qlead' }, n + ' of ' + S.round.length + ' decided in this round.'));
+  S.round.forEach(function (id, i) {
+    var x = BK.byId[id], rec = (st.book || {})[id] || {}, o = rec.option && rec.option !== 'Own' ? bkOptByCode(x, rec.option) : null;
+    out.append(h('div', { class: 'qrow' }, h('span', { class: 'qid' }, x.id), h('span', { class: 'grow' }, x.title),
+      h('span', { class: 'small' }, qdDone(id) ? (rec.option === 'Own' ? 'Your idea' : rec.option + (o ? ' · ' + o.name : '')) : 'Skipped'),
+      btn('Change', function () { S.mode = 'card'; S.i = i; render(); window.scrollTo(0, 0); }, 'tiny')));
+  });
+  var next = qdNext(5);
+  out.append(h('div', { class: 'foot' }, btn('Back to the start', qdHome), next.length ? btn('Next ' + next.length + ' decisions →', function () { qdStart(next, false); }, 'pri qbig') : null));
+  out.append(h('p', { class: 'small mut' }, qdCount() + ' of ' + BOOK.decisions.length + ' decided so far.'));
+  return out;
+}
+
+/* the full detailed version keeps a way back */
+function qdFullBar() {
+  return h('div', { class: 'notice blue' }, h('b', {}, 'You are in the full detailed version. '), 'It shows every finding, the search, the seven tests, and the rebuttal export. ',
+    btn('← Back to the simple Decision Book', function () { var S = qdState(); S.lastBk = view.bk.id; view.bk.full = false; S.mode = 'home'; render(); window.scrollTo(0, 0); }, 'pri tiny'));
+}
+
+/* ------------------------------------------------------------------ the guide at the top of every step */
+var STEP_GUIDE = {
+  evidence: { t: 'Read what the study found', do: ['Pick a topic chip (Survey, Site, Law...) and read a few findings.', 'Pin only the ones you want to keep.'], skip: 'You do not have to read it all. The Decision Book already shows the right facts beside each choice.' },
+  concept: { t: 'Say how the whole center feels', do: ['Answer the questions that matter to you, or tap the team\'s draft option.', 'Leave the rest blank.'], skip: 'Anything left blank uses the team\'s draft.' },
+  criteria: { t: 'Write the rules the design must follow', do: ['Open a pillar tab.', 'Take a draft criterion from the shelf and change a word or two, or write your own.'], skip: 'This is optional for now. Come back when the main decisions are made.' },
+  program: { t: 'Choose the rooms', do: ['For each area, press "Adopt every draft space".', 'Then drop or add only what you disagree with.'], skip: 'The draft already lists the rooms. Adopting it takes a few clicks.' },
+  adjacency: { t: 'Say what sits near and what sits apart', do: ['The grid is already filled in from the draft.', 'Click only the cells you disagree with.'], skip: 'If you agree with the draft, there is nothing to do here.' },
+  floors: { t: 'Place each room on a floor', do: ['The draft already places every room.', 'Drag a room to a different floor only if you disagree.'], skip: 'If you agree with the draft, there is nothing to do here.' },
+  specify: { t: 'Describe how each part is made', do: ['Open a building, an area or a room.', 'Tap an option; write only what the options miss.'], skip: 'This is detail. Blank answers use the draft. It can wait.' },
+  build: { t: 'Software files', do: ['Nothing to do yet.'], skip: 'This step waits until the decisions are settled and the researcher gives the go-ahead.' },
+  check: { t: 'See what is missing', do: ['Start with the items marked "to fix".', 'Fix them, or accept them with a one-line reason.'], skip: 'The coach checks the rest.' },
+  record: { t: 'Save and share your work', do: ['Press "Save my work as a file" and send the file to the researcher.', 'Print a sheet only if you want paper.'], skip: '' },
+  team: { t: 'For the team lead', do: ['Load each member\'s saved file to see progress.'], skip: 'Members do not need this step.' }
+};
+function stepGuide(id) {
+  var g = STEP_GUIDE[id]; if (!g) return null;
+  var i = STEPS.findIndex(function (s) { return s[0] === id; }), nx = STEPS[i + 1];
+  return h('div', { class: 'guide noprint' }, h('div', { class: 'row' }, h('b', {}, 'In this step: ' + g.t), h('span', { class: 'grow' }),
+    nx ? btn('Next: ' + nx[1].replace(/^\d+\s/, '') + ' →', function () { go(nx[0]); }, 'tiny') : null),
+    h('ul', {}, g.do.map(function (x) { return h('li', {}, x); })), g.skip ? h('div', { class: 'small mut' }, g.skip) : null);
 }
 
 /* Part C: Look and feel, Check, My record, fixes, boot. */
