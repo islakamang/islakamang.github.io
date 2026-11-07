@@ -136,6 +136,12 @@ svg text{font-family:inherit}
 .qres{border-left:5px solid var(--blue);background:var(--blue-t)}.qres textarea{width:100%;box-sizing:border-box;margin:6px 0}
 .qdots{display:flex;align-items:center;gap:6px}.qdot{width:12px;height:12px;border-radius:6px;border:2px solid var(--rule);background:#fff}.qdot.now{border-color:var(--blue)}.qdot.ok{background:var(--blue);border-color:var(--blue)}
 .guide{background:#fff;border:1px solid #bfd2ea;border-left:5px solid var(--blue);border-radius:10px;padding:8px 14px;margin:0 0 12px}.guide ul{margin:4px 0 4px;padding-left:20px}.guide li{font-size:13.5px;margin:2px 0}
+/* D269 team board */
+.nchip{display:inline-block;font-size:12px;padding:1px 9px;border-radius:11px;background:var(--slate-t);color:var(--slate);border:1px solid var(--rule);margin:0 3px 2px 0}.nchip.me{background:var(--blue-t);color:var(--blue);border-color:#bfd2ea;font-weight:700}
+.nchip.big{font-size:13px;padding:3px 11px}.dotl{display:inline-block;width:8px;height:8px;border-radius:4px;background:#c8ced8;margin-right:6px}.dotl.on{background:var(--blue)}
+.brow{border:1px solid var(--rule);border-radius:10px;padding:8px 12px;margin:7px 0;background:#fff}.blabel{font-weight:700;font-size:13.5px;margin-bottom:3px}
+.bgrp{margin:3px 0;font-size:13px;padding:3px 8px;border-left:4px solid var(--rule)}.bgrp.act{border-left-color:var(--blue)}.bgrp.sug{border-left-color:var(--gold);color:#6b5a1a;background:var(--gold-t)}.btxt{font-weight:600}
+.bsec{margin:12px 0}.bsec>summary{cursor:pointer;font-weight:700;font-size:14px;padding:4px 0}.qteam{border-left:5px solid var(--purple);background:#fcfaff}
 </style>
 </head>
 <body>
@@ -7255,7 +7261,7 @@ if (typeof module !== 'undefined') module.exports = { specStatus, SPEC, vphase, 
 /* KAMANG Design Studio: the interface. Part A: helpers, state, coach, Start, Evidence, Criteria. */
 'use strict';
 const KEY = 'kamangStudio2';
-const STEPS = [['start', 'Start'], ['decide', '★ Decision Book'], ['evidence', '1 Evidence'], ['concept', '2 Concept and vibe'], ['criteria', '3 My criteria'], ['program', '4 Program'], ['adjacency', '5 Adjacency'], ['floors', '6 Floors and zones'], ['specify', '7 Specify the build'], ['build', '8 Build in software'], ['check', '9 Check'], ['record', '10 Print and export'], ['team', 'Team view']];
+const STEPS = [['start', 'Start'], ['decide', '★ Decision Book'], ['board', '◎ Team board'], ['evidence', '1 Evidence'], ['concept', '2 Concept and vibe'], ['criteria', '3 My criteria'], ['program', '4 Program'], ['adjacency', '5 Adjacency'], ['floors', '6 Floors and zones'], ['specify', '7 Specify the build'], ['build', '8 Build in software'], ['check', '9 Check'], ['record', '10 Print and export'], ['team', 'Team view']];
 const DONE_KEY = { evidence: 'evidence', concept: 'concept', criteria: 'criteria', program: 'program', adjacency: 'adjacency', floors: 'floors', specify: 'specify' };
 let st = load();
 const view = { spec: null, area: 'A1', grp: 'RP1', tag: 'All', q: '', open: {}, sel: null, evPick: null, addOpen: false, ruleForm: { a: '', b: '', t: 'near' }, evScope: 'grp' };
@@ -7312,10 +7318,11 @@ const evOf = id => DATA.evidence.find(e => e.id === id);
 let RES = null;
 function render() {
   const y = window.scrollY;
+  if (typeof applyDefaults === 'function') applyDefaults();
   RES = check(st);
   renderSteps();
   const m = $('#main'); m.innerHTML = '';
-  const fn = { start: viewStart, decide: viewDecide, evidence: viewEvidence, concept: viewConcept, criteria: viewCriteria, program: viewProgram, adjacency: viewAdjacency, floors: viewFloors, specify: viewSpecify, build: viewBuild, check: viewCheck, record: viewRecord, team: viewTeam }[STEPS[st.step][0]];
+  const fn = { start: viewStart, decide: viewDecide, board: viewBoard, evidence: viewEvidence, concept: viewConcept, criteria: viewCriteria, program: viewProgram, adjacency: viewAdjacency, floors: viewFloors, specify: viewSpecify, build: viewBuild, check: viewCheck, record: viewRecord, team: viewTeam }[STEPS[st.step][0]];
   const sg = typeof stepGuide === 'function' ? stepGuide(STEPS[st.step][0]) : null;
   if (sg) m.append(sg);
   m.append(fn());
@@ -7588,20 +7595,26 @@ function qEl(q, ans, ctx, nested) {
   return box;
 }
 function specPanel(scope, ans, ctx, title) {
+  if (typeof autoDraft === 'function') { autoDraft(scope, ans, ctx); if (scope === 'center') linkBookToConcept(ans); }
   const sts = specStatus(scope, ans, ctx);
   const head = h('div', { class: 'card', style: 'background:#fafbfd' }, h('div', { class: 'row' }, h('b', { class: 'grow' }, title), h('span', { class: 'tag ' + (sts.pct === 100 ? 'final' : 'Site') }, sts.pct + '% of what the builder needs')),
     h('div', { class: 'bar' }, h('i', { style: 'width:' + sts.pct + '%' })),
     sts.missing.length ? h('div', { class: 'small', style: 'margin-top:5px' }, h('b', {}, 'Still needed: '), sts.missing.slice(0, 10).map(q => qText(q, ctx).replace(/\?$/, '')).join('; ') + (sts.missing.length > 10 ? '; ...' : '')) : h('div', { class: 'small', style: 'margin-top:5px' }, 'The builder has what it needs here.'));
-  const body = h('div', {});
+  const body = h('div', {}, h('div', { class: 'notice blue' }, h('b', {}, 'The big decisions are first. '), 'The team\'s draft answers are already checked for you. Uncheck or change any you disagree with. Detail questions are behind the "More detail" button.'), (scope === 'center' && typeof conceptBanner === 'function') ? conceptBanner() : null);
   const key0 = scope === 'center' ? 'center' : scope === 'vol' ? ctx.vol.id : scope === 'area' ? ctx.area.id : ctx.space.id;
   const L = leadOf(ctx), lead = L ? L.prim.concat(L.sec) : null, showAll = !!view.open['allp' + key0];
-  let last = null, hidden = 0;
+  let last = null, hidden = 0, nMinor = 0;
+  const more = h('div', {}), moreOpen = !!view.open['opt' + key0];
+  const isReqQ = q => q.req || (q.reqIf && q.reqIf(Object.assign({ scope: ctx.space ? 'space' : ctx.area ? 'area' : ctx.vol ? 'vol' : 'center' }, ctx)));
+  let target = body;
   SPEC[scope].filter(q => qOk(q, ctx, ans)).forEach(q => {
     if (q.pq && lead && !lead.includes(q.pq) && !showAll && isEmpty(ans[q.id])) { hidden++; return; }
-    if (q.elem !== last && q.kind !== 'info') { body.append(h('h4', { style: 'margin:16px 0 0;border-bottom:1px solid var(--rule);color:var(--blue)' }, q.elem === 'The pillars' ? 'The twelve Design Pillars' + (lead ? ': this area leads with ' + L.prim.join(', ') + (L.sec.length ? ', supported by ' + L.sec.join(', ') : '') : '') : q.elem)); last = q.elem; }
-    body.append(qEl(q, ans, ctx, false));
+    if (q.kind !== 'info') { target = (isReqQ(q) && !q.pq) ? body : more; if (target === more) nMinor++; }
+    if (q.elem !== last && q.kind !== 'info') { target.append(h('h4', { style: 'margin:16px 0 0;border-bottom:1px solid var(--rule);color:var(--blue)' }, q.elem === 'The pillars' ? 'The twelve Design Pillars' + (lead ? ': this area leads with ' + L.prim.join(', ') + (L.sec.length ? ', supported by ' + L.sec.join(', ') : '') : '') : q.elem)); last = q.elem; }
+    target.append(qEl(q, ans, ctx, false));
   });
-  if (hidden) body.append(h('button', { class: 'link', onclick: () => { view.open['allp' + key0] = true; render(); } }, 'Show the other ' + hidden + ' pillars for this place'));
+  if (hidden) more.append(h('button', { class: 'link', onclick: () => { view.open['allp' + key0] = true; render(); } }, 'Show the other ' + hidden + ' pillars for this place'));
+  if (nMinor + hidden) { body.append(h('div', { style: 'margin:14px 0 4px' }, btn(moreOpen ? 'Hide the optional questions' : 'More detail (optional): ' + (nMinor + hidden) + ' more questions', () => { view.open['opt' + key0] = !moreOpen; render(); }, 'tiny'))); if (moreOpen) body.append(more); }
   const key = scope === 'center' ? 'center' : scope === 'vol' ? ctx.vol.id : scope === 'area' ? ctx.area.id : ctx.space.id;
   let tale = null;
   if (scope === 'space') { const s = ctx.space; tale = storyEl('room' + s.id, storyData(TYPE_TOPICS[s.type] || [], [], TYPE_KW[s.type]), 'The story behind this room', s.basis ? 'Why the draft has this room: ' + s.basis + (s.code ? '. The code: ' + s.code + '.' : '.') : null); }
@@ -8317,19 +8330,20 @@ function mySummary() {
     pillars: pillarCover('center', st.char, {}, []).size, fix: S.counts.error, check: S.counts.warn,
     book: Object.keys(st.book || {}).filter(id => (st.book[id] || {}).decision).length };
 }
-function scheduleSync() { if (!ONLINE || !st.online || !st.online.joined) return; SYNC.pending = true; clearTimeout(SYNC.timer); SYNC.timer = setTimeout(syncNow, 5000); syncBadge(); }
+function scheduleSync() { if (!ONLINE || !st.online || !st.online.joined) return; SYNC.pending = true; clearTimeout(SYNC.timer); SYNC.timer = setTimeout(syncNow, 2000); syncBadge(); }
 async function syncNow() {
   if (!ONLINE || !st.online || !st.online.joined || SYNC.busy) return;
   SYNC.busy = true; syncBadge();
   try {
     const o = st.online, data = JSON.stringify(Object.assign({}, st, { online: { joined: true, id: o.id, name: o.name } }));
-    const r = await api({ action: 'save', team: o.team, id: o.id, name: o.name, pin: o.pin, role: st.role || '', summary: mySummary(), data });
+    const r = await api({ action: 'save', team: o.team, id: o.id, name: o.name, pin: o.pin, role: st.role || '', summary: mySummary(), snap: mySnap(), data });
     if (r.ok) { SYNC.last = new Date(); SYNC.err = null; SYNC.pending = false; } else SYNC.err = r.err;
   } catch (e) { SYNC.err = 'offline'; }
   SYNC.busy = false; syncBadge();
   if (SYNC.err === 'offline') { clearTimeout(SYNC.timer); SYNC.timer = setTimeout(syncNow, 30000); }
 }
 function syncBadge() {
+  if (typeof teamPollEnsure === 'function') teamPollEnsure();
   let b = document.getElementById('syncb');
   if (!b) { const hd = document.querySelector('header.top'); if (!hd) return; b = h('span', { id: 'syncb', class: 'syncb' }); hd.append(b); }
   if (!ONLINE) { b.textContent = 'Offline copy'; b.className = 'syncb'; return; }
@@ -9212,7 +9226,8 @@ function bkMarkdown() {
 function qdState() { view.qd = view.qd || { mode: 'home', round: [], i: 0, more: {}, open: {}, ownOpen: {}, noteOpen: {}, skipped: {}, lastBk: null, single: false }; return view.qd; }
 function qdShort(s, n) { s = String(s || ''); if (s.length <= n) return s; var c = s.slice(0, n), k = c.lastIndexOf(' '); return c.slice(0, k > n * 0.6 ? k : n) + '…'; }
 function qdFirst(s) { var m = String(s || '').match(/^.*?[.;](\s|$)/); return m ? m[0].trim() : String(s || ''); }
-function qdDone(id) { return bkStatus(id) === 'Decided'; }
+function qdDone(id) { var r = (st.book || {})[id]; return !!(r && r.decision && !r.auto); }   // reviewed by the member, not just checked for them
+function qdHas(id) { var r = (st.book || {})[id]; return !!(r && r.decision); }
 function qdCount() { return BOOK.decisions.filter(function (x) { return qdDone(x.id); }).length; }
 function qdNext(n) {
   var S = qdState(), open = BOOK.decisions.filter(function (x) { return !qdDone(x.id); });
@@ -9223,14 +9238,15 @@ function qdStart(ids, single) { var S = qdState(); S.mode = 'card'; S.round = id
 function qdHome() { var S = qdState(); S.mode = 'home'; render(); window.scrollTo(0, 0); }
 
 /* a tap on an option records the decision and a reason built from the option's own evidence */
-function qdChoose(d, o) {
+function qdChoose(d, o) { qdApply(d, o, false); save(); render(); }
+function qdApply(d, o, auto) {
   var rec = bkRec(d.id);
   rec.option = o.code; rec.verdict = {}; rec.verdict[o.code] = 'Accept'; rec.own = '';
   rec.decision = 'Option ' + o.code + ', ' + o.name + ': ' + o.idea;
   rec.reason = 'Chosen in the Decision Book. It rests on ' + (o.rests_on || []).join(', ') + '.' + (o.beyond ? ' Also weighed: ' + o.beyond : '') + (o.tradeoff ? ' Trade-off accepted: ' + o.tradeoff : '') + (d.recommend && d.recommend !== o.code ? ' The builder suggested option ' + d.recommend + '.' : '');
-  rec.status = 'Decided'; rec.quick = true; rec.auto = false;
+  rec.status = 'Decided'; rec.quick = true; rec.auto = !!auto;
+  if (auto) rec.reason = 'The builder\'s pick, checked for the team and not yet reviewed. ' + rec.reason;
   rec.musts = rec.musts || {}; (d.musts || []).forEach(function (m, i) { rec.musts[i] = true; });
-  save(); render();
 }
 function qdOwn(d, text) {
   var rec = bkRec(d.id); text = (text || '').trim();
@@ -9243,17 +9259,6 @@ function qdOwn(d, text) {
   save(); render();
 }
 function qdClear(d) { var rec = bkRec(d.id); rec.option = ''; rec.own = ''; rec.decision = ''; rec.reason = ''; rec.status = 'Open'; rec.quick = false; rec.auto = false; rec.verdict = {}; save(); render(); }
-function qdFillRest() {
-  var n = 0;
-  BOOK.decisions.forEach(function (d) {
-    if (qdDone(d.id)) return;
-    var o = bkOptByCode(d, d.recommend); if (!o) return;
-    qdChoose(d, o); var rec = bkRec(d.id); rec.auto = true;
-    rec.reason = 'The builder\'s suggestion, not yet reviewed by the team. ' + rec.reason; n++;
-  });
-  save(); render(); toast(n + ' decisions filled with the builder\'s suggestions. Review or change any of them.');
-}
-
 /* the facts: up to five at a time, the ones that matter most first, and at most one that pulls the other way */
 function qdFacts(d) {
   var key = d.evidence.filter(function (e) { return e[3] === 'Key' && e[2] !== 'Conflicts'; });
@@ -9274,15 +9279,14 @@ function viewDecide() {
 function qdHomeView() {
   var S = qdState(), done = qdCount(), total = BOOK.decisions.length, next = qdNext(5), out = h('div', {});
   out.append(h('h2', {}, 'Decision Book'),
-    h('p', { class: 'qlead' }, 'Fifty choices shape the center. For each one we show what the study found and a few options. You tap one. If none fits, write your own in a line or two. About a minute each.'));
-  out.append(h('div', { class: 'card' }, h('div', { class: 'row' }, h('b', {}, done + ' of ' + total + ' decided'), h('span', { class: 'grow' }),
-    done < total ? btn('Let the builder fill the rest', function () { if (confirm('Fill every open decision with the builder\'s suggestion? You can review and change any of them afterwards.')) qdFillRest(); }, 'tiny') : null),
+    h('p', { class: 'qlead' }, 'Fifty choices shape the center. The builder\'s pick is already checked for each one. Go through them five at a time: keep the pick, tap a different option, or write your own if none fits.'));
+  out.append(h('div', { class: 'card' }, h('div', { class: 'row' }, h('b', {}, done + ' of ' + total + ' reviewed'), h('span', { class: 'small mut' }, (total - done) + ' still on the builder\'s pick'), h('span', { class: 'grow' })),
     h('div', { class: 'bar' }, h('i', { style: 'width:' + Math.round(100 * done / total) + '%' }))));
   if (next.length) {
-    out.append(h('div', { class: 'card qnext' }, h('h3', { style: 'margin-top:0' }, done ? 'Your next ' + next.length : 'Start with these ' + next.length),
+    out.append(h('div', { class: 'card qnext' }, h('h3', { style: 'margin-top:0' }, done ? 'Your next ' + next.length + ' to review' : 'Review these ' + next.length + ' first'),
       next.map(function (id) { var x = BK.byId[id]; return h('div', { class: 'qrow' }, h('span', { class: 'qid' }, x.id), h('span', {}, x.title)); }),
-      h('div', { class: 'row', style: 'margin-top:8px' }, btn(done ? 'Continue' : 'Start', function () { qdStart(next, false); }, 'pri qbig'))));
-  } else out.append(h('div', { class: 'notice blue' }, h('b', {}, 'All fifty are decided. '), 'Open any decision below to change it.'));
+      h('div', { class: 'row', style: 'margin-top:8px' }, btn(done ? 'Continue' : 'Start', function () { qdStart(next, false); }, 'pri qbig'), btn('Team board', function () { go('board'); }, 'tiny'))));
+  } else out.append(h('div', { class: 'notice blue' }, h('b', {}, 'All fifty are reviewed. '), 'Open any decision below to change it, or see the team board.'));
   out.append(h('p', { class: 'small' }, btn('See all 50 decisions', function () { S.mode = 'all'; render(); }, 'tiny'), ' ',
     btn('Download my decisions (.md)', bkMarkdown, 'tiny'), ' ', btn('Download my record (.json)', bkDownload, 'tiny'), ' ',
     btn('Open the full detailed version', function () { view.bk = view.bk || { id: BOOK.decisions[0].id, q: '', body: 'All', more: false }; view.bk.full = true; render(); }, 'tiny')));
@@ -9297,7 +9301,7 @@ function qdAll() {
     gp[1].forEach(function (x) {
       var rec = (st.book || {})[x.id] || {}, o = rec.option && rec.option !== 'Own' ? bkOptByCode(x, rec.option) : null;
       out.append(h('div', { class: 'qrow click', onclick: function () { qdStart([x.id], true); } }, h('span', { class: 'qid' }, x.id), h('span', { class: 'grow' }, x.title),
-        h('span', { class: 'small ' + (qdDone(x.id) ? '' : 'mut') }, qdDone(x.id) ? (rec.auto ? 'Suggested · ' : '✓ ') + (rec.option === 'Own' ? 'Your idea' : rec.option + (o ? ' ' + o.name : '')) : 'Open')));
+        h('span', { class: 'small ' + (qdDone(x.id) ? '' : 'mut') }, qdHas(x.id) ? (rec.auto ? 'Builder\'s pick · ' : '✓ ') + (rec.option === 'Own' ? 'Your idea' : rec.option + (o ? ' ' + o.name : '')) : 'Open')));
     });
   });
   return out;
@@ -9317,10 +9321,11 @@ function qdCard() {
   var pages = S.more[d.id] || 0, show = F.main.slice(0, 4 + pages * 5), ids = show.map(function (e) { return e[0]; });
   var list = h('ul', { class: 'qfacts' }, show.map(function (e) { return h('li', {}, evRef(e[0], 'q' + d.id), ' ', e[1]); }));
   if (F.against.length && pages === 0) { var c = F.against[0]; ids.push(c[0]); list.append(h('li', { class: 'against' }, evRef(c[0], 'q' + d.id), ' ', h('b', {}, 'Pulls the other way: '), c[1])); }
-  out.append(h('div', { class: 'card evidence' }, h('b', {}, 'What the study found'), list, evPanels(ids, 'q' + d.id, { dec: d }),
+  out.append(h('div', { class: 'card evidence' }, h('b', {}, 'What matters most (from the study)'), list, evPanels(ids, 'q' + d.id, { dec: d }),
     F.main.length > show.length ? h('div', {}, btn('Show 5 more facts', function () { S.more[d.id] = pages + 1; render(); }, 'tiny')) : null));
   // options
-  out.append(h('h3', { style: 'margin:14px 0 4px' }, 'Pick one'));
+  out.append(h('h3', { style: 'margin:14px 0 2px' }, 'Pick one'), h('div', { class: 'small mut', style: 'margin-bottom:4px' }, rec.auto ? 'The builder\'s pick is checked for you. Keep it, or tap another option.' : 'Tap an option to change your pick.'));
+  var ts = typeof qdTeamStrip === 'function' ? qdTeamStrip(d) : null; if (ts) out.append(ts);
   d.options.forEach(function (o) { out.append(qdOption(d, o, rec, S)); });
   // own idea
   var ownOn = S.ownOpen[d.id] || rec.option === 'Own';
@@ -9332,12 +9337,13 @@ function qdCard() {
   } else own.append(btn('Write my own', function () { S.ownOpen[d.id] = true; render(); }, 'tiny'));
   out.append(own);
   // result
-  if (qdDone(d.id)) out.append(qdResult(d, rec, S));
+  if (qdHas(d.id)) out.append(qdResult(d, rec, S));
   // navigation
   var last = S.i === S.round.length - 1;
   out.append(h('div', { class: 'foot' }, S.i > 0 ? btn('← Back', function () { S.i--; render(); window.scrollTo(0, 0); }) : null,
-    !qdDone(d.id) ? btn('Skip for now', function () { S.skipped[d.id] = true; qdAdvance(S); }) : null,
-    btn(qdDone(d.id) ? (last ? (S.single ? 'Done' : 'Finish this round') : 'Next decision →') : (last ? 'Finish' : 'Next →'), function () { qdAdvance(S); }, qdDone(d.id) ? 'pri qbig' : '')));
+    rec.auto ? btn('Decide later', function () { S.skipped[d.id] = true; qdAdvance(S); }) : null,
+    btn(rec.auto ? (last ? 'Keep this pick and finish' : 'Keep this pick, next →') : (last ? (S.single ? 'Done' : 'Finish this round') : 'Next decision →'),
+      function () { if (rec.auto) { rec.auto = false; rec.reason = String(rec.reason || '').replace(/^The builder's pick, checked for the team and not yet reviewed\. /, 'Kept the builder\'s pick. '); save(); } qdAdvance(S); }, 'pri qbig')));
   return out;
 }
 function qdAdvance(S) {
@@ -9351,7 +9357,7 @@ function qdOption(d, o, rec, S) {
     h('div', { class: 'qoh' }, h('span', { class: 'qoc' }, o.code), h('b', {}, o.name), isRec ? h('span', { class: 'qrec' }, 'Builder suggests') : null),
     h('div', { class: 'qod' }, qdShort(qdFirst(o.idea), 240)),
     o.tradeoff ? h('div', { class: 'qow' }, h('b', {}, 'Watch out: '), qdShort(o.tradeoff, 200)) : null,
-    h('div', { class: 'row', style: 'margin-top:6px' }, btn(sel ? '✓ Chosen' : 'Choose ' + o.code, function () { qdChoose(d, o); }, sel ? 'pri' : 'qbig'),
+    h('div', { class: 'row', style: 'margin-top:6px' }, btn(sel ? (rec.auto ? '✓ Checked for you' : '✓ Chosen') : 'Choose ' + o.code, function () { qdChoose(d, o); }, sel ? 'pri' : 'qbig'),
       btn(open ? 'Hide details' : 'Read more', function () { S.open[k] = !open; render(); }, 'tiny')));
   if (open) card.append(h('div', { class: 'small', style: 'margin-top:6px' }, o.idea),
     h('div', { class: 'small', style: 'margin-top:4px' }, h('b', {}, 'Serves '), (o.pillars || []).map(function (p) { return tagEl(p, 'final'); }), h('b', { style: 'margin-left:8px' }, 'Rests on '), (o.rests_on || []).map(function (id) { return evRef(id, 'qo' + k); })),
@@ -9365,8 +9371,8 @@ function qdResult(d, rec, S) {
   if (rec.option === 'Own') box.append(h('p', { style: 'margin:0' }, h('b', {}, '✓ Saved. '), 'Your own idea is recorded. The builder will check it against the same requirements as the options.'));
   else {
     var o = bkOptByCode(d, rec.option), j = bkJudg(d, rec.option);
-    box.append(h('p', { style: 'margin:0' }, h('b', {}, '✓ Saved: '), rec.option + ', ' + (o ? o.name : '') + (rec.auto ? '  (the builder\'s suggestion; change it any time)' : '')));
-    if (d.recommend && d.recommend !== rec.option) box.append(h('p', { class: 'small', style: 'margin:6px 0 0' }, h('b', {}, 'The builder suggested ' + d.recommend + ': '), qdShort(qdFirst(d.recommend_why || ''), 260)));
+    box.append(h('p', { style: 'margin:0' }, h('b', {}, rec.auto ? '☑ Checked for you: ' : '✓ Saved: '), rec.option + ', ' + (o ? o.name : '') + (rec.auto ? '  (the builder\'s pick; change it any time)' : '')));
+    if (!rec.auto && d.recommend && d.recommend !== rec.option) box.append(h('p', { class: 'small', style: 'margin:6px 0 0' }, h('b', {}, 'The builder suggested ' + d.recommend + ': '), qdShort(qdFirst(d.recommend_why || ''), 260)));
     if (j) {
       var soft = BKTESTS.filter(function (k) { return j.tests[k] && j.tests[k][0] !== 'Strong'; }).sort(function (x, y) { return BKRANK[j.tests[x][0]] - BKRANK[j.tests[y][0]]; });
       box.append(h('p', { class: 'small', style: 'margin:6px 0 0' }, soft.length ? [h('b', {}, 'Less strong on: '), soft.slice(0, 3).map(function (k) { return k + ' (' + j.tests[k][0].toLowerCase() + ')'; }).join(', '), soft.length > 3 ? ' and ' + (soft.length - 3) + ' more' : '', '.'] : 'Strong on every test the builder runs.'));
@@ -9383,16 +9389,16 @@ function qdResult(d, rec, S) {
 
 function qdSummary() {
   var S = qdState(), out = h('div', {}), n = S.round.filter(qdDone).length;
-  out.append(h('h2', {}, 'Round done'), h('p', { class: 'qlead' }, n + ' of ' + S.round.length + ' decided in this round.'));
+  out.append(h('h2', {}, 'Round done'), h('p', { class: 'qlead' }, n + ' of ' + S.round.length + ' reviewed in this round.'));
   S.round.forEach(function (id, i) {
     var x = BK.byId[id], rec = (st.book || {})[id] || {}, o = rec.option && rec.option !== 'Own' ? bkOptByCode(x, rec.option) : null;
     out.append(h('div', { class: 'qrow' }, h('span', { class: 'qid' }, x.id), h('span', { class: 'grow' }, x.title),
-      h('span', { class: 'small' }, qdDone(id) ? (rec.option === 'Own' ? 'Your idea' : rec.option + (o ? ' · ' + o.name : '')) : 'Skipped'),
+      h('span', { class: 'small' }, qdHas(id) ? (rec.auto ? 'Builder\'s pick · ' : '') + (rec.option === 'Own' ? 'Your idea' : rec.option + (o ? ' · ' + o.name : '')) : 'Skipped'),
       btn('Change', function () { S.mode = 'card'; S.i = i; render(); window.scrollTo(0, 0); }, 'tiny')));
   });
   var next = qdNext(5);
   out.append(h('div', { class: 'foot' }, btn('Back to the start', qdHome), next.length ? btn('Next ' + next.length + ' decisions →', function () { qdStart(next, false); }, 'pri qbig') : null));
-  out.append(h('p', { class: 'small mut' }, qdCount() + ' of ' + BOOK.decisions.length + ' decided so far.'));
+  out.append(h('p', { class: 'small mut' }, qdCount() + ' of ' + BOOK.decisions.length + ' reviewed so far.'));
   return out;
 }
 
@@ -9404,13 +9410,14 @@ function qdFullBar() {
 
 /* ------------------------------------------------------------------ the guide at the top of every step */
 var STEP_GUIDE = {
+  board: { t: 'See everyone\'s choices at once', do: ['Open a tab: Decision Book, Whole center, Rooms or Criteria.', 'Where members chose differently, every choice is listed with names. "Take this" adopts a teammate\'s choice.'], skip: 'The same choice appears once, with the members who chose it. It updates by itself about every 12 seconds.' },
   evidence: { t: 'Read what the study found', do: ['Pick a topic chip (Survey, Site, Law...) and read a few findings.', 'Pin only the ones you want to keep.'], skip: 'You do not have to read it all. The Decision Book already shows the right facts beside each choice.' },
-  concept: { t: 'Say how the whole center feels', do: ['Answer the questions that matter to you, or tap the team\'s draft option.', 'Leave the rest blank.'], skip: 'Anything left blank uses the team\'s draft.' },
-  criteria: { t: 'Write the rules the design must follow', do: ['Open a pillar tab.', 'Take a draft criterion from the shelf and change a word or two, or write your own.'], skip: 'This is optional for now. Come back when the main decisions are made.' },
-  program: { t: 'Choose the rooms', do: ['For each area, press "Adopt every draft space".', 'Then drop or add only what you disagree with.'], skip: 'The draft already lists the rooms. Adopting it takes a few clicks.' },
+  concept: { t: 'Say how the whole center feels', do: ['The team draft is already checked. The big decisions come first.', 'Uncheck or change only what you disagree with.'], skip: 'Your Decision Book picks are written into these questions. Detail questions are behind the More detail button.' },
+  criteria: { t: 'The rules the design must follow', do: ['The draft criteria are already adopted for you.', 'Open a pillar tab and change a word, or set aside any you disagree with.'], skip: 'Nothing to do if you agree with the draft.' },
+  program: { t: 'Check the rooms', do: ['Every draft room is already adopted.', 'Set aside or change only the rooms you disagree with, and add any the draft missed.'], skip: 'Nothing to do if you agree with the draft.' },
   adjacency: { t: 'Say what sits near and what sits apart', do: ['The grid is already filled in from the draft.', 'Click only the cells you disagree with.'], skip: 'If you agree with the draft, there is nothing to do here.' },
   floors: { t: 'Place each room on a floor', do: ['The draft already places every room.', 'Drag a room to a different floor only if you disagree.'], skip: 'If you agree with the draft, there is nothing to do here.' },
-  specify: { t: 'Describe how each part is made', do: ['Open a building, an area or a room.', 'Tap an option; write only what the options miss.'], skip: 'This is detail. Blank answers use the draft. It can wait.' },
+  specify: { t: 'How each part is made', do: ['The team draft is already checked in each building, area and room.', 'Open one and change only what you disagree with.'], skip: 'This is detail. It can wait.' },
   build: { t: 'Software files', do: ['Nothing to do yet.'], skip: 'This step waits until the decisions are settled and the researcher gives the go-ahead.' },
   check: { t: 'See what is missing', do: ['Start with the items marked "to fix".', 'Fix them, or accept them with a one-line reason.'], skip: 'The coach checks the rest.' },
   record: { t: 'Save and share your work', do: ['Press "Save my work as a file" and send the file to the researcher.', 'Print a sheet only if you want paper.'], skip: '' },
@@ -9424,13 +9431,275 @@ function stepGuide(id) {
     h('ul', {}, g.do.map(function (x) { return h('li', {}, x); })), g.skip ? h('div', { class: 'small mut' }, g.skip) : null);
 }
 
+/* KAMANG Design Studio, part M (D269): checked-for-you defaults, the Decision Book linked to Concept, and the live Team board.
+   - applyDefaults(): the first time a state opens, every open Decision Book decision is checked with the builder's recommendation, every draft
+     space is adopted, and every draft criterion is adopted, each marked auto. Members uncheck or change what they disagree with.
+   - autoDraft(): when a Specify or Concept panel is first opened, the team's draft options are checked in it (choice: the first draft option;
+     chips: the draft options). The draft text of "the big idea" is filled in.
+   - linkBookToConcept(): the member's Decision Book picks appear in the matching Concept questions (as the question's note, and the big idea).
+   - The Team board: every member's compact decisions (sent with each save, read with the team code) are merged into one live view. Identical
+     choices appear once with the members who chose them; opposing choices are listed with names. It refreshes about every 12 seconds. */
+var BK_LINK = { C01: 'concept_line', C02: 'form', C03: 'form', C05: 'form', C06: 'landmark', C07: 'flood', C08: 'roof_family', C09: 'structure', C10: 'ns', C11: 'materials', C12: 'identity', C13: 'climate', C17: 'landscape', C18: 'night' };
+
+/* ------------------------------------------------------------------ checked for you */
+function applyDefaults() {
+  if (st.v269) return;
+  st.v269 = true;
+  if (st.step >= 2) st.step++;                       // the Team board step was added after the Decision Book
+  st.book = st.book || {};
+  BOOK.decisions.forEach(function (d) {
+    const rec = bkRec(d.id);
+    if (rec.option || rec.decision) return;
+    const o = bkOptByCode(d, d.recommend); if (o) qdApply(d, o, true);
+  });
+  DATA.spaces.forEach(function (s) { if (!st.dec[s.id]) st.dec[s.id] = { d: 'adopt', auto: true }; });
+  (DATA.props || []).forEach(function (p) {
+    if (st.propDec[p.id]) return;
+    st.propDec[p.id] = { d: 'adopt', auto: true };
+    if (!st.crit.find(function (c) { return c.from === p.id; })) addCrit(p.grp, { name: p.row, text: p.bul.join('; '), ev: p.ev.slice(), origin: 'adopted', from: p.id, auto: true });
+  });
+  save();
+}
+
+function autoDraft(scope, ans, ctx) {
+  if (!ans || ans.__auto) return;
+  ans.__auto = true;
+  const fill = function (q) {
+    if (!qOk(q, ctx, ans)) return;
+    if (q.kind === 'text' && q.id === 'concept_line' && isEmpty(ans[q.id])) {
+      const dh = (q.hint || []).find(function (x) { return x[0] === 'draft'; }); if (dh) { ans[q.id] = dh[1]; st.lk = st.lk || {}; st.lk[q.id] = dh[1]; }
+      return;
+    }
+    if (q.kind !== 'choice' && q.kind !== 'chips') return;
+    const os = optsOf(q, ctx).filter(function (o) { return optOk(o, ctx) && o.draft; });
+    if (isEmpty(ans[q.id]) && os.length) ans[q.id] = q.kind === 'choice' ? os[0].label : os.slice(0, q.max || 99).map(function (o) { return o.label; });
+    optsOf(q, ctx).forEach(function (o) {
+      const on = q.kind === 'chips' ? (ans[q.id] || []).indexOf(o.label) >= 0 : ans[q.id] === o.label;
+      if (on && o.follow) o.follow.forEach(fill);
+    });
+  };
+  SPEC[scope].forEach(fill);
+  save();
+}
+
+function linkBookToConcept(ans) {
+  st.lk = st.lk || {};
+  const by = {};
+  Object.keys(BK_LINK).forEach(function (id) {
+    const rec = (st.book || {})[id], d = BK.byId[id]; if (!rec || !rec.option || !d) return;
+    const o = rec.option === 'Own' ? null : bkOptByCode(d, rec.option);
+    const t = 'Decision Book ' + id + (rec.auto ? ' (the builder\'s pick)' : '') + ': ' + (rec.option === 'Own' ? 'my own idea, ' + qdShort(rec.own || '', 160) : 'option ' + rec.option + ', ' + (o ? o.name : '') + '. ' + qdShort(qdFirst(o ? o.idea : ''), 170));
+    (by[BK_LINK[id]] = by[BK_LINK[id]] || []).push(t);
+  });
+  Object.keys(by).forEach(function (qid) {
+    const txt = by[qid].join(' | ');
+    if (qid === 'concept_line') {
+      const rec = st.book.C01, d = BK.byId.C01, o = rec.option === 'Own' ? null : bkOptByCode(d, rec.option);
+      const line = rec.option === 'Own' ? rec.own : (o ? o.name + '. ' + qdFirst(o.idea) : '');
+      if (line && (isEmpty(ans.concept_line) || ans.concept_line === st.lk.concept_line)) { ans.concept_line = line; st.lk.concept_line = line; }
+      return;
+    }
+    const k = qid + '_note';
+    if (isEmpty(ans[k]) || ans[k] === st.lk[k]) { ans[k] = txt; st.lk[k] = txt; }
+  });
+}
+
+function conceptBanner() {
+  const rows = Object.keys(BK_LINK).filter(function (id) { const r = (st.book || {})[id]; return r && r.option; });
+  if (!rows.length) return null;
+  const box = h('div', { class: 'notice blue' }, h('b', {}, 'Linked to your Decision Book. '), 'Your picks are written into the matching questions below (in each question\'s note). The big idea is filled in from C01. Change the pick in the Decision Book, or write over it here.');
+  return box;
+}
+
+/* ------------------------------------------------------------------ the shared snapshot */
+var TL = { members: [], have: {}, at: null, err: null, busy: false, timer: null, dirty: false };
+function mySnap() {
+  const crit = (st.crit || []).filter(function (c) { return c.name || c.text; }).map(function (c) { return { g: c.group, n: c.name || '', t: String(c.text || '').slice(0, 300) }; });
+  const ch = {};
+  Object.keys(st.char || {}).forEach(function (k) { const v = st.char[k]; if (k.indexOf('__') === 0 || v == null || v === '' || (Array.isArray(v) && !v.length)) return; if (/_note$/.test(k) && st.lk && st.lk[k] === v) return; ch[k] =typeof v === 'string' ? v.slice(0, 500) : v; });
+  const book = {};
+  Object.keys(st.book || {}).forEach(function (id) { const r = st.book[id]; if (r && r.option) book[id] = { o: r.option, a: !!r.auto, w: r.option === 'Own' ? String(r.own || '').slice(0, 400) : undefined, n: r.note_free ? String(r.note_free).slice(0, 300) : undefined }; });
+  const dec = {};
+  Object.keys(st.dec || {}).forEach(function (id) { const d = st.dec[id]; dec[id] = { d: d.d, a: !!d.auto, r: d.reason ? String(d.reason).slice(0, 200) : undefined }; });
+  const added = (st.added || []).map(function (a) { return { area: a.area, name: a.name }; });
+  return JSON.stringify({ designer: st.designer || '', role: st.role || '', book: book, dec: dec, added: added, crit: crit, char: ch });
+}
+function snapOf(stObj) { return asMember(stObj, function () { return JSON.parse(mySnap()); }); }
+
+async function teamPoll() {
+  if (!ONLINE || !st.online || !st.online.joined || TL.busy || document.hidden) return;
+  TL.busy = true;
+  try {
+    const r = await api({ action: 'team', team: st.online.team, have: TL.have });
+    if (!r.ok) TL.err = r.err === 'unknown_action' ? 'old_receiver' : r.err;
+    else {
+      TL.err = null; let changed = false; const seen = {};
+      r.members.forEach(function (m) {
+        seen[m.id] = 1; if (m.same) return;
+        let snap = {}; try { snap = JSON.parse(m.snap || '{}'); } catch (e) { }
+        const rec = { id: m.id, name: m.name, role: m.role, at: m.at, snap: snap }, i = TL.members.findIndex(function (x) { return x.id === m.id; });
+        if (i >= 0) TL.members[i] = rec; else TL.members.push(rec);
+        TL.have[m.id] = m.at; changed = true;
+      });
+      const before = TL.members.length; TL.members = TL.members.filter(function (m) { return seen[m.id]; }); if (TL.members.length !== before) changed = true;
+      TL.at = new Date(); if (changed) teamRefresh();
+    }
+  } catch (e) { TL.err = 'offline'; }
+  TL.busy = false;
+}
+function teamRefresh() {
+  const id = STEPS[st.step][0]; if (id !== 'decide' && id !== 'board') return;
+  const ae = document.activeElement;
+  if (ae && (ae.tagName === 'TEXTAREA' || ae.tagName === 'INPUT' || ae.tagName === 'SELECT')) { TL.dirty = true; return; }
+  render();
+}
+function teamPollEnsure() {
+  const on = !!(ONLINE && st.online && st.online.joined);
+  if (on && !TL.timer) { TL.timer = setInterval(teamPoll, 12000); teamPoll(); }
+  if (!on && TL.timer) { clearInterval(TL.timer); TL.timer = null; }
+}
+document.addEventListener('visibilitychange', function () { if (!document.hidden) teamPoll(); });
+
+function boardPeople() {
+  const myId = (st.online && st.online.id) || 'me';
+  const me = { id: myId, name: (st.online && st.online.name) || st.designer || 'You', role: st.role || '', at: new Date().toISOString(), snap: JSON.parse(mySnap()), me: true };
+  let others = TL.members.filter(function (m) { return m.id !== myId; });
+  if (!(st.online && st.online.joined)) others = teamList().map(function (x) { return { id: 'f' + (x.st.designer || x.file), name: x.st.designer || x.file, role: x.st.role || '', at: x.st.savedAt, snap: snapOf(x.st) }; });
+  return [me].concat(others);
+}
+function nchip(m, P) { return h('span', { class: 'nchip' + (m.me ? ' me' : '') }, m.me ? 'You' : m.name); }
+function chipsOf(names, P) { return names.map(function (n) { const m = P.find(function (x) { return x.name === n; }) || { name: n }; return nchip(m, P); }); }
+
+/* what the others chose in one Decision Book decision, for the card */
+function bookGroups(d, P) {
+  const groups = {}, onPick = [], none = [];
+  P.forEach(function (m) {
+    const r = (m.snap.book || {})[d.id];
+    if (!r) { none.push(m.name); return; }
+    if (r.a) { onPick.push(m.name); return; }
+    const key = r.o === 'Own' ? 'Own: ' + (r.w || '') : r.o;
+    (groups[key] = groups[key] || []).push(m.name);
+  });
+  return { groups: groups, onPick: onPick, none: none, keys: Object.keys(groups) };
+}
+function qdTeamStrip(d) {
+  const P = boardPeople(); if (P.length < 2) return null;
+  const g = bookGroups(d, P), box = h('div', { class: 'card qteam' }, h('b', {}, 'The team so far'));
+  if (!g.keys.length) box.append(h('div', { class: 'small mut' }, 'No one has changed the builder\'s pick yet.'));
+  g.keys.forEach(function (k) {
+    const o = bkOptByCode(d, k);
+    box.append(h('div', { class: 'small', style: 'margin:4px 0' }, h('b', {}, k.indexOf('Own: ') === 0 ? 'Own idea: ' + qdShort(k.slice(5), 90) : k + (o ? ' ' + o.name : '')), ' ', chipsOf(g.groups[k], P)));
+  });
+  if (g.onPick.length) box.append(h('div', { class: 'small mut', style: 'margin:4px 0' }, 'On the builder\'s pick (' + d.recommend + '), not yet reviewed: ', chipsOf(g.onPick, P)));
+  return box;
+}
+
+/* ------------------------------------------------------------------ the Team board */
+function viewBoard() {
+  const P = boardPeople(), bd = view.bd = view.bd || { scope: 'book', same: false }, r = h('div', { class: 'qd board', style: 'max-width:980px' });
+  r.append(h('h2', {}, 'Team board'), h('p', { class: 'qlead' }, 'Everyone\'s choices in one place. The same choice appears once, with the members who chose it. Where members disagree, every choice is listed with names.'));
+  const joined = !!(st.online && st.online.joined);
+  if (!ONLINE) r.append(h('div', { class: 'notice gold' }, 'This offline copy cannot see teammates live. Open the team website, or load teammates\' saved files in the Team view.'));
+  else if (!joined) { r.append(h('div', { class: 'notice gold' }, h('b', {}, 'Join the team to see everyone live. '), 'Your choices are shared as you make them.')); const jc = joinCard(); if (jc) r.append(jc); }
+  else if (TL.err === 'old_receiver') r.append(h('div', { class: 'notice orange' }, h('b', {}, 'The team sheet needs its update. '), 'The shared board needs the new receiver script. The researcher updates it once (copy the new studio_backend.gs into the Apps Script and deploy a new version). Until then each member\'s work still saves, but members cannot see one another here.'));
+  else if (TL.err) r.append(h('div', { class: 'notice orange' }, 'Could not read the team just now (' + TL.err + '). It will try again.'));
+  else r.append(h('div', { class: 'small mut' }, TL.at ? 'Live. Updated ' + TL.at.toLocaleTimeString() + '; refreshes about every 12 seconds while this tab is open.' : 'Connecting to the team...'));
+  r.append(h('div', { class: 'row', style: 'margin:8px 0' }, P.map(function (m) {
+    const fresh = m.me || (m.at && (Date.now() - new Date(m.at).getTime()) < 120000);
+    return h('span', { class: 'nchip big' + (m.me ? ' me' : '') }, h('i', { class: 'dotl' + (fresh ? ' on' : '') }), (m.me ? (m.name === 'You' ? 'You' : 'You (' + m.name + ')') : m.name), m.role ? h('span', { class: 'small mut' }, ' · ' + qdShort(m.role, 24)) : null);
+  })));
+  const tabs = [['book', 'Decision Book'], ['center', 'Whole center'], ['program', 'Rooms'], ['crit', 'Criteria']];
+  r.append(h('div', { class: 'tabs' }, tabs.map(function (t) { return h('button', { class: bd.scope === t[0] ? 'on' : '', onclick: function () { bd.scope = t[0]; render(); } }, t[1]); })));
+  if (P.length < 2) r.append(h('div', { class: 'notice' }, 'You are the only one here so far. As teammates join and decide, their choices appear here beside yours.'));
+  r.append(bd.scope === 'book' ? boardBook(P) : bd.scope === 'center' ? boardCenter(P) : bd.scope === 'program' ? boardProgram(P) : boardCrit(P));
+  return r;
+}
+
+function boardSection(title, n, open, body) {
+  return h('details', { class: 'bsec', open: open ? true : null }, h('summary', {}, title + ' (' + n + ')'), body);
+}
+function boardRowEl(label, groups, P, extra) {
+  const row = h('div', { class: 'brow' }, h('div', { class: 'blabel' }, label));
+  groups.forEach(function (g) { row.append(h('div', { class: 'bgrp ' + (g.tone || '') }, h('span', { class: 'btxt' }, g.text), ' ', chipsOf(g.names, P), g.take ? btn('Take this', g.take, 'tiny') : null)); });
+  if (extra) row.append(extra);
+  return row;
+}
+
+function boardBook(P) {
+  const diff = [], agree = [], quiet = [];
+  BOOK.decisions.forEach(function (d) {
+    const g = bookGroups(d, P), eff = {}; g.keys.forEach(function (k) { eff[k] = 1; }); if (g.onPick.length && g.keys.length) eff[d.recommend] = 1;
+    const row = { d: d, g: g, n: Object.keys(eff).length };
+    (g.keys.length === 0 ? quiet : row.n > 1 ? diff : agree).push(row);
+  });
+  const el = function (x) {
+    const d = x.d, groups = x.g.keys.map(function (k) {
+      const o = bkOptByCode(d, k), mine = (x.g.groups[k] || []).indexOf(P[0].name) >= 0;
+      return { text: k.indexOf('Own: ') === 0 ? 'Own idea: ' + qdShort(k.slice(5), 140) : k + '  ' + (o ? o.name : ''), names: x.g.groups[k], tone: 'act', take: (!o || mine) ? null : function () { qdChoose(d, o); } };
+    });
+    if (x.g.onPick.length) { const o = bkOptByCode(d, d.recommend); groups.push({ text: d.recommend + '  ' + (o ? o.name : '') + '  (the builder\'s pick, not yet reviewed)', names: x.g.onPick, tone: 'sug' }); }
+    return boardRowEl(d.id + '  ' + d.title, groups, P);
+  };
+  const out = h('div', {});
+  out.append(boardSection('Members chose differently', diff.length, true, diff.length ? h('div', {}, diff.map(el)) : h('p', { class: 'small mut' }, 'No disagreements so far.')));
+  out.append(boardSection('Chosen by everyone who answered', agree.length, bdOpen('agree'), h('div', {}, agree.map(el))));
+  out.append(boardSection('Still on the builder\'s pick for everyone', quiet.length, false, h('div', { class: 'small mut' }, quiet.map(function (x) { return x.d.id + ' ' + x.d.title; }).join(' · '))));
+  return out;
+}
+function bdOpen(k) { return !!(view.bd && view.bd.open && view.bd.open[k]); }
+
+/* rows from the compare engine, grouped by identical answer */
+function boardGroupRows(rows, names, P) {
+  const diff = [], same = [];
+  rows.forEach(function (r) {
+    const map = {}, order = [];
+    r.slice(1).forEach(function (v, i) { v = (v || '').trim(); if (!v || v === '-') return; if (!map[v]) { map[v] = []; order.push(v); } map[v].push(names[i]); });
+    if (!order.length) return;
+    const groups = order.map(function (v) { return { text: v, names: map[v], tone: 'act' }; });
+    (order.length > 1 ? diff : same).push(boardRowEl(r[0], groups, P));
+  });
+  return { diff: diff, same: same };
+}
+function boardCenter(P) {
+  const L = P.map(function (m) { return { file: m.name, st: Object.assign(newState(), { char: m.snap.char || {}, designer: m.name }) }; });
+  const c = cmpRows(L, { scope: 'center', key: 'center' }), g = boardGroupRows(c.rows, c.names, P), out = h('div', {});
+  out.append(boardSection('Members answered differently', g.diff.length, true, g.diff.length ? h('div', {}, g.diff) : h('p', { class: 'small mut' }, 'No disagreements so far.')));
+  out.append(boardSection('Answered the same, or by one member', g.same.length, false, h('div', {}, g.same)));
+  return out;
+}
+function boardProgram(P) {
+  const lab = { adopt: 'adopted', adapt: 'adapted', defer: 'deferred', skip: 'set aside', pending: 'undecided' }, diff = [], changed = [];
+  DATA.spaces.forEach(function (s) {
+    const map = {}; P.forEach(function (m) { const d = (m.snap.dec || {})[s.id]; if (!d) return; const k = lab[d.d] + (d.a ? ' (draft)' : ''); (map[k] = map[k] || []).push(m.name); });
+    const keys = Object.keys(map), eff = {}; keys.forEach(function (k) { eff[k.replace(' (draft)', '')] = 1; });
+    if (!keys.length) return;
+    const groups = keys.map(function (k) { return { text: k, names: map[k], tone: k.indexOf('(draft)') > 0 ? 'sug' : 'act' }; });
+    if (Object.keys(eff).length > 1) diff.push(boardRowEl(s.area + '  ' + s.name, groups, P));
+    else if (!(keys.length === 1 && /adopted/.test(keys[0]))) changed.push(boardRowEl(s.area + '  ' + s.name, groups, P));
+  });
+  const added = []; P.forEach(function (m) { (m.snap.added || []).forEach(function (a) { added.push(boardRowEl(a.area + '  ' + a.name, [{ text: 'added room', names: [m.name], tone: 'act' }], P)); }); });
+  const out = h('div', {});
+  out.append(boardSection('Members decided differently', diff.length, true, diff.length ? h('div', {}, diff) : h('p', { class: 'small mut' }, 'No disagreements so far. Every draft room is adopted unless a member changes it.')));
+  out.append(boardSection('Rooms added by members', added.length, added.length > 0, h('div', {}, added)));
+  out.append(boardSection('Changed by everyone alike', changed.length, false, h('div', {}, changed)));
+  return out;
+}
+function boardCrit(P) {
+  const by = {};
+  P.forEach(function (m) { (m.snap.crit || []).forEach(function (c) { const k = c.g + '|' + c.n.trim().toLowerCase(); (by[k] = by[k] || { c: c, names: [] }).names.push(m.name); }); });
+  const all = Object.keys(by).map(function (k) { return by[k]; }), few = all.filter(function (x) { return x.names.length < P.length; }), every = all.filter(function (x) { return x.names.length === P.length; });
+  const el = function (x) { const g = grpOf(x.c.g); return boardRowEl((g ? g.name : x.c.g) + ': ' + (x.c.n || qdShort(x.c.t, 80)), [{ text: qdShort(x.c.t, 200), names: x.names, tone: 'act' }], P); };
+  const out = h('div', {});
+  out.append(boardSection('Held by some members only', few.length, true, few.length ? h('div', {}, few.map(el)) : h('p', { class: 'small mut' }, 'Every criterion is shared by all members.')));
+  out.append(boardSection('Held by everyone', every.length, false, h('div', {}, every.map(el))));
+  return out;
+}
+
 /* Part C: Look and feel, Check, My record, fixes, boot. */
 
 /* ------------------------------------------------------------------ 2 Concept and vibe (the whole center) */
 function builderVoice() {
-  return h('div', { class: 'notice' }, h('b', {}, 'Think of me as the master builder. '), 'I do not know how to build the teen center until you tell me. I am not choosing for you, but I come with ideas: the options marked ',
-    tagEl('team draft', 'draft'), ' come from the draft Chapters 5 and 6, and the others are what I would suggest from experience. Each card says what the option is and what I would weigh in building it. Pick one, change it, or write your own idea in the box. ',
-    'I will ask for more detail where your answer needs it, and I will tell you what I still cannot build.');
+  return h('div', { class: 'small mut', style: 'margin:4px 0 8px' }, 'The builder’s ideas are checked for you (marked ', tagEl('team draft', 'draft'), '). Uncheck or change what you disagree with, or write your own.');
 }
 function viewConcept() {
   const r = h('div', {});
