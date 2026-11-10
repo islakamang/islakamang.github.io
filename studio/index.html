@@ -10358,8 +10358,8 @@ function plCap(o) {
 function plApplyOne(o) {
   const net = Math.round((o.w * o.h) / (o.k || 1) * 2) / 2;
   const a = st.added.find(x => x.id === o.sid);
-  if (a) a.net = net; else { const cur = st.dec[o.sid] || {}; st.dec[o.sid] = Object.assign({}, cur, { d: cur.d === 'adopt' || !cur.d ? 'adapt' : cur.d, edit: Object.assign({}, cur.edit, { net }) }); }
-  if ((o.k || 1) === 1) { st.size = st.size || {}; st.size[o.sid] = { w: r2(Math.max(o.w, o.h)), d: r2(Math.min(o.w, o.h)) }; }
+  if (a) a.net = net; else { const cur = st.dec[o.sid] || {}; st.dec[o.sid] = Object.assign({}, cur, { d: cur.d === 'adopt' || !cur.d ? 'adapt' : cur.d, auto: false, edit: Object.assign({}, cur.edit, { net }) }); }
+  { const f = Math.sqrt(o.k || 1); st.size = st.size || {}; st.size[o.sid] = { w: r2(Math.max(o.w, o.h) / f), d: r2(Math.min(o.w, o.h) / f) }; }
 }
 function plApplyAll() { const S = PL.cur; const L = S.items.filter(o => o.ref === 'space' && Math.abs(o.w * o.h - o.base) / Math.max(1, o.base) > 0.03); commit(() => { L.forEach(plApplyOne); }); toast(L.length + ' size' + (L.length > 1 ? 's' : '') + ' applied to the program'); }
 
